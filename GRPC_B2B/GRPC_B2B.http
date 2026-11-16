@@ -1,0 +1,6 @@
+@GRPC_B2B_HostAddress = http://localhost:5214
+
+GET {{GRPC_B2B_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,18 @@
+@GRPC_HostAddress = https://localhost:7130
+
+GET {{GRPC_HostAddress}}/weatherforecast/
+Accept: application/json
+
+### Calls GRPC_B2B over gRPC (unary)
+GET {{GRPC_HostAddress}}/B2BWeather?days=3
+Accept: application/json
+
+### Calls GRPC_B2B over gRPC (server streaming)
+GET {{GRPC_HostAddress}}/B2BWeather/stream?days=3
+Accept: application/json
+
+### Validation error from GRPC_B2B -> expect 400
+GET {{GRPC_HostAddress}}/B2BWeather?days=50
+Accept: application/json
+
+###

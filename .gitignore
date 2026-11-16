@@ -1,0 +1,107 @@
+#OS junk files
+[Tt]humbs.db
+*.DS_Store
+
+#Visual Studio files
+*.[Oo]bj
+*.user
+*.aps
+*.pch
+*.vspscc
+*.vssscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.bak
+*.[Cc]ache
+*.ilk
+*.log
+*.lib
+*.sbr
+*.sdf
+ipch/
+obj/
+[Bb]in
+[Dd]ebug*/
+[Rr]elease*/
+[Mm]igrations*/
+Ankh.NoLoad
+*.pyc
+__pycache__/
+
+#Tooling
+_ReSharper*/
+*.resharper
+[Tt]est[Rr]esult*
+
+#Project files
+[Bb]uild/
+build_temp/
+build_patch/
+
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+patchbuilder.py
+
+# Environment files
+src/environments/environment.ts
+src/environments/environment.prod.ts
+src/environments/environment.development.ts
+
+# .NET configuration files
+appsettings.json
+
+#python build folder
+ECL3_PythonUtility.egg-info/
+ECL3_PythonUtility_Stage.egg-info/
+ECL3_PythonUtility_Demo.egg-info/
+
+#python 
+*.pyc
+__pycache__/
+
+#Subversion files
+.svn
+
+# Office Temp Files
+~$*
+
+.vs
+.yml
+"MyAPP/src/environment/" 
+"MyAPP/src/environment/environment.prod.ts" 
+"ECL.APP/src/environments/environment.prod.ts" 
+
+build_log
+/build_log
+build_log/
+build_log/*
+/build_log/*
+
+publish
+/publish
+publish/
+publish/*
+/publish/*
+
+# Angular
+package-lock.json
+/MyApp.API.lnk
+
+
+# Created by coverage.py
+htmlcov
+/htmlcov
+/htmlcov/*
+htmlcov/
+htmlcov/*
+.coverage
+/coverage_reports
+coverage_reports/
+coverage_reports/*

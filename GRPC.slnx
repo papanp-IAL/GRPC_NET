@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="GRPC/GRPC.csproj" />
+  <Project Path="GRPC_B2B/GRPC_B2B.csproj" />
+</Solution>

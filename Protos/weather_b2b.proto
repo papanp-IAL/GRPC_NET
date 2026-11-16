@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+option csharp_namespace = "B2B.Contracts.Weather";
+
+package b2b.weather.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Shared B2B contract. GRPC_B2B implements it (server), GRPC consumes it (client).
+// Evolve it compatibly: only add new fields with new numbers, never reuse or renumber.
+service WeatherB2B {
+  // Unary call: get a forecast for the next N days.
+  rpc GetForecast (ForecastRequest) returns (ForecastReply);
+
+  // Server streaming: push forecasts one by one (useful for large result sets).
+  rpc StreamForecast (ForecastRequest) returns (stream Forecast);
+}
+
+message ForecastRequest {
+  int32 days = 1;         // 1..14
+  string partner_ref = 2; // caller's correlation/reference id
+}
+
+message ForecastReply {
+  repeated Forecast forecasts = 1;
+  string partner_ref = 2;
+}
+
+message Forecast {
+  google.protobuf.Timestamp date = 1;
+  int32 temperature_c = 2;
+  int32 temperature_f = 3;
+  string summary = 4;
+}

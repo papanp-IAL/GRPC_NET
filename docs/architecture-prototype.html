@@ -1,0 +1,1219 @@
+<title>Microservices Solution Blueprint</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
+<style>
+/* Layout: blueprint sheet — header, tab strip, then a two-pane explorer (tree | detail) that stacks on phones.
+   Layer colors (API / BLL / DAL / Contracts / Common) are the page's only chroma and repeat everywhere. */
+:root{
+  --bg:#f5f7f9; --panel:#ffffff; --sunk:#eef1f5; --line:#d8dee6; --fg:#16202b; --muted:#5a6878;
+  --accent:#1f5fae; --accent-soft:#e3edf9;
+  --api:#1f6fd1; --api-soft:#e2eefc;
+  --bll:#1d8a5b; --bll-soft:#def3e9;
+  --dal:#b26a00; --dal-soft:#fbeedb;
+  --ctr:#7a4fc4; --ctr-soft:#efe8fb;
+  --cmn:#5b6878; --cmn-soft:#e9edf2; --cache:#0f7c86; --cache-soft:#dcf2f3;
+  --bad:#c0392b; --bad-soft:#fbe5e2;
+  --code-bg:#0f1720; --code-fg:#dbe4ee;
+  --f-head:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e141b; --panel:#151d26; --sunk:#1b2530; --line:#2a3644; --fg:#e4eaf1; --muted:#93a1b1;
+  --accent:#6ea8f0; --accent-soft:#1a2a3e;
+  --api:#6aa8f2; --api-soft:#172a42; --bll:#4cc38a; --bll-soft:#13301f; --dal:#e7a64a; --dal-soft:#35260f;
+  --ctr:#b18cf0; --ctr-soft:#2a1f40; --cmn:#9aa7b6; --cmn-soft:#232d39; --cache:#4fc4cc; --cache-soft:#10302f; --bad:#ef7b6d; --bad-soft:#3a1c18;
+  --code-bg:#0a0f15; --code-fg:#d6dfe9; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e141b; --panel:#151d26; --sunk:#1b2530; --line:#2a3644; --fg:#e4eaf1; --muted:#93a1b1;
+  --accent:#6ea8f0; --accent-soft:#1a2a3e;
+  --api:#6aa8f2; --api-soft:#172a42; --bll:#4cc38a; --bll-soft:#13301f; --dal:#e7a64a; --dal-soft:#35260f;
+  --ctr:#b18cf0; --ctr-soft:#2a1f40; --cmn:#9aa7b6; --cmn-soft:#232d39; --cache:#4fc4cc; --cache-soft:#10302f; --bad:#ef7b6d; --bad-soft:#3a1c18;
+  --code-bg:#0a0f15; --code-fg:#d6dfe9; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--f-body)}
+.wrap{max-width:1240px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+h1,h2,h3{font-family:var(--f-head);text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:clamp(26px,4vw,36px);letter-spacing:-.01em}
+h2{font-size:22px}
+h3{font-size:16px}
+p{margin:0}
+code,.mono{font-family:var(--f-mono);font-size:.9em}
+.lede{color:var(--muted);max-width:70ch;margin-top:8px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:16px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:3px;flex:none;background:var(--cmn)}
+.l-api{--c:var(--api);--cs:var(--api-soft)} .l-bll{--c:var(--bll);--cs:var(--bll-soft)} .l-dal{--c:var(--dal);--cs:var(--dal-soft)}
+.l-ctr{--c:var(--ctr);--cs:var(--ctr-soft)} .l-cmn{--c:var(--cmn);--cs:var(--cmn-soft)}
+.l-gw{--c:var(--accent);--cs:var(--accent-soft)} .l-cache{--c:var(--cache);--cs:var(--cache-soft)}
+.dot.l-api,.dot.l-bll,.dot.l-dal,.dot.l-ctr,.dot.l-cmn,.dot.l-gw,.dot.l-cache{background:var(--c)}
+
+.tabs{display:flex;gap:4px;margin-top:24px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{appearance:none;border:0;background:none;color:var(--muted);font:600 14px var(--f-body);padding:10px 14px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.tab:hover{color:var(--fg)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+.view{margin-top:20px}
+
+/* explorer */
+.explorer{display:grid;grid-template-columns:minmax(260px,360px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:820px){.explorer{grid-template-columns:minmax(0,1fr)}}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0}
+.tree-pane{position:sticky;top:12px;max-height:calc(100vh - 24px);display:flex;flex-direction:column}
+@media (max-width:820px){.tree-pane{position:static;max-height:60vh}}
+.tree-tools{display:flex;gap:8px;padding:10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tree-tools input{flex:1 1 140px;min-width:0;font:14px var(--f-body);padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--sunk);color:var(--fg)}
+.btn{appearance:none;border:1px solid var(--line);background:var(--panel);color:var(--fg);font:500 13px var(--f-body);padding:6px 10px;border-radius:6px;cursor:pointer}
+.btn:hover{background:var(--sunk)}
+.tree{list-style:none;margin:0;padding:6px;overflow:auto;font-family:var(--f-mono);font-size:13px}
+.tree ul{list-style:none;margin:0;padding-left:14px;border-left:1px dashed var(--line);margin-left:9px}
+.node{display:flex;align-items:center;gap:6px;width:100%;text-align:left;appearance:none;border:0;background:none;color:var(--fg);font:inherit;padding:4px 6px;border-radius:5px;cursor:pointer}
+.node:hover{background:var(--sunk)}
+.node[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:500}
+.chev{width:12px;flex:none;color:var(--muted);transition:transform .15s}
+.node[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.ico{flex:none;font-size:12px;width:14px;text-align:center;color:var(--muted)}
+.node .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{font:600 10px var(--f-body);letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--cs,var(--sunk));color:var(--c,var(--muted));flex:none}
+.node .tag{margin-left:auto}
+.hit .nm{background:var(--dal-soft);border-radius:3px}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}}
+
+.detail{padding:22px;display:grid;gap:18px}
+.crumb{font-family:var(--f-mono);font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.dhead{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.dhead h2{overflow-wrap:anywhere}
+.desc{max-width:72ch}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.box{border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
+.box h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-family:var(--f-body)}
+.box ul{margin:0;padding-left:18px;display:grid;gap:4px}
+.box.ok{border-color:color-mix(in srgb,var(--bll) 45%,var(--line))}
+.box.no{border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
+.box.ok h3{color:var(--bll)} .box.no h3{color:var(--bad)}
+.kids{display:flex;flex-wrap:wrap;gap:6px}
+.chip{appearance:none;border:1px solid var(--line);background:var(--sunk);color:var(--fg);font:13px var(--f-mono);padding:4px 8px;border-radius:5px;cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.codewrap{position:relative;min-width:0}
+pre{margin:0;background:var(--code-bg);color:var(--code-fg);font:12.5px/1.6 var(--f-mono);padding:14px 16px;border-radius:8px;overflow-x:auto}
+.copy{position:absolute;top:8px;right:8px;font-size:12px;padding:3px 8px;background:var(--panel)}
+.kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;font-size:14px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;overflow-wrap:anywhere}
+
+/* other views */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;min-width:0}
+.stack{display:grid;gap:16px}
+.diagram{overflow-x:auto}
+.diagram svg{display:block;min-width:820px;width:100%;height:auto}
+svg text{font-family:var(--f-body)}
+.s-box{stroke-width:1.5}
+.s-api{fill:var(--api-soft);stroke:var(--api)} .s-bll{fill:var(--bll-soft);stroke:var(--bll)} .s-dal{fill:var(--dal-soft);stroke:var(--dal)}
+.s-ctr{fill:var(--ctr-soft);stroke:var(--ctr)} .s-cmn{fill:var(--cmn-soft);stroke:var(--cmn)} .s-cli{fill:var(--sunk);stroke:var(--muted)}
+.s-svc{fill:none;stroke:var(--line);stroke-dasharray:5 4}
+.s-gw{fill:var(--accent-soft);stroke:var(--accent)} .s-tel{fill:var(--sunk);stroke:var(--muted);stroke-dasharray:4 3} .s-cache{fill:var(--cache-soft);stroke:var(--cache)}
+.a-cache{stroke:var(--cache);stroke-width:2;fill:none;stroke-dasharray:3 3} .ah-cache{fill:var(--cache)}
+.t-cache{fill:var(--cache);font-size:12px;font-weight:600} .t-gw{fill:var(--accent);font-size:12px;font-weight:600}
+.t-main{fill:var(--fg);font-size:14px;font-weight:600} .t-sub{fill:var(--muted);font-size:12px}
+.t-api{fill:var(--api);font-size:12px;font-weight:600} .t-ctr{fill:var(--ctr);font-size:12px;font-weight:600}
+.t-svc{fill:var(--muted);font-size:12px;font-weight:600;letter-spacing:.08em}
+.a-dep{stroke:var(--muted);stroke-width:1.5;fill:none}
+.a-grpc{stroke:var(--api);stroke-width:2;fill:none;stroke-dasharray:6 4}
+.a-rest{stroke:var(--fg);stroke-width:1.5;fill:none}
+.ah-dep{fill:var(--muted)} .ah-grpc{fill:var(--api)} .ah-rest{fill:var(--fg)}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:0;counter-reset:s}
+.steps li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:14px;padding:14px 0;border-top:1px solid var(--line)}
+.steps li:first-child{border-top:0}
+.steps li::before{counter-increment:s;content:counter(s);width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--f-mono);background:var(--cs,var(--sunk));color:var(--c,var(--fg))}
+.steps .where{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:4px}
+.steps .where b{font-family:var(--f-mono);font-weight:500;font-size:13px}
+.steps p{color:var(--muted)}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td code{white-space:nowrap}
+.yes{color:var(--bll);font-weight:600} .noo{color:var(--bad);font-weight:600} .dim{color:var(--muted)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.rules{margin:0;padding-left:20px;display:grid;gap:8px}
+.note{font-size:13px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Microservices Solution Blueprint</h1>
+    <p class="lede">Proposed structure for the License, Dashboard and Auth services. Each service has its own API, BLL and DAL projects and owns one database schema. Services talk to each other over gRPC using shared <code>.proto</code> contracts. Every browser request first passes an API Gateway that checks the token and the user's permissions, using a shared Redis cache. Users sign in with company Active Directory (Microsoft Entra ID), and every component sends telemetry through OpenTelemetry. Click any folder or file in the tree to see what goes there.</p>
+    <div class="legend" aria-label="Layer colors">
+      <span><i class="dot l-gw"></i>Gateway (auth check, routing)</span>
+      <span><i class="dot l-cache"></i>Cache (Redis)</span>
+      <span><i class="dot l-api"></i>API (Web API host)</span>
+      <span><i class="dot l-bll"></i>BLL (business logic)</span>
+      <span><i class="dot l-dal"></i>DAL (data access)</span>
+      <span><i class="dot l-ctr"></i>Contracts (.proto)</span>
+      <span><i class="dot l-cmn"></i>Common / repo files</span>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Views">
+    <button class="tab" role="tab" id="tab-structure" aria-controls="structure" aria-selected="true">Folder structure</button>
+    <button class="tab" role="tab" id="tab-architecture" aria-controls="architecture" aria-selected="false">Architecture</button>
+    <button class="tab" role="tab" id="tab-flow" aria-controls="flow" aria-selected="false">Request flow</button>
+    <button class="tab" role="tab" id="tab-team" aria-controls="team" aria-selected="false">Rules &amp; team</button>
+  </nav>
+
+  <!-- STRUCTURE -->
+  <section class="view" id="structure" role="tabpanel" aria-labelledby="tab-structure">
+    <div class="explorer">
+      <div class="pane tree-pane">
+        <div class="tree-tools">
+          <input id="filter" type="search" placeholder="Find a file or folder" aria-label="Find a file or folder">
+          <button class="btn" id="expandAll" type="button">Expand all</button>
+          <button class="btn" id="collapseAll" type="button">Collapse</button>
+        </div>
+        <ul class="tree" id="tree" role="tree" aria-label="Solution folders"></ul>
+      </div>
+      <article class="pane detail" id="detail" aria-live="polite"></article>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section class="view" id="architecture" role="tabpanel" aria-labelledby="tab-architecture" hidden>
+    <div class="stack">
+      <div class="card diagram">
+        <svg viewBox="0 0 960 776" role="img" aria-label="Users sign in with Microsoft Entra ID. Browser requests pass through an API gateway that validates the AD token and checks permissions using a Redis cache, then routes to three services. Each service has API, BLL and DAL layers and its own schema. Every service can call every other service over gRPC in both directions.">
+          <defs>
+            <marker id="m-dep" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ah-dep"/></marker>
+            <marker id="m-grpc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah-grpc"/></marker>
+            <marker id="m-rest" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ah-rest"/></marker>
+            <marker id="m-cache" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ah-cache"/></marker>
+          </defs>
+          <!-- client -->
+          <rect class="s-box s-cli" x="350" y="16" width="260" height="52" rx="8"/>
+          <text class="t-main" x="480" y="40" text-anchor="middle">Web UI / Partner systems</text>
+          <text class="t-sub" x="480" y="58" text-anchor="middle">HTTPS · REST/JSON · Bearer token</text>
+          <path class="a-rest" d="M480 68 V108" marker-end="url(#m-rest)"/>
+
+          <!-- identity -->
+          <rect class="s-box s-gw" x="40" y="16" width="230" height="52" rx="8"/>
+          <text class="t-main" x="155" y="40" text-anchor="middle">Microsoft Entra ID (AD)</text>
+          <text class="t-sub" x="155" y="58" text-anchor="middle">sign-in · issues access tokens</text>
+          <path class="a-rest" d="M350 42 H274" marker-end="url(#m-rest)"/>
+          <text class="t-sub" x="312" y="34" text-anchor="middle">sign in</text>
+
+          <!-- gateway -->
+          <rect class="s-box s-gw" x="250" y="110" width="460" height="60" rx="8"/>
+          <text class="t-main" x="480" y="134" text-anchor="middle">API Gateway (YARP)</text>
+          <text class="t-sub" x="480" y="154" text-anchor="middle">validate AD token · blocked? · permission check · rate limit · route</text>
+
+          <!-- redis -->
+          <path class="s-box s-cache" d="M750 26 V70 A70 10 0 0 0 890 70 V26"/>
+          <ellipse class="s-box s-cache" cx="820" cy="26" rx="70" ry="10"/>
+          <text class="t-main" x="820" y="52" text-anchor="middle">Redis cache</text>
+          <text class="t-sub" x="820" y="68" text-anchor="middle">permissions · blocked users</text>
+          <path class="a-cache" d="M710 130 H820 V84" marker-end="url(#m-cache)"/>
+          <text class="t-cache" x="765" y="124" text-anchor="middle">lookup</text>
+
+          <!-- gateway routes -->
+          <path class="a-rest" d="M250 140 H236 V226" marker-end="url(#m-rest)"/>
+          <path class="a-rest" d="M560 170 V226" marker-end="url(#m-rest)"/>
+          <path class="a-rest" d="M710 156 H870 V226" marker-end="url(#m-rest)"/>
+          <text class="t-sub" x="568" y="204">routes by path</text>
+
+          <!-- service frames -->
+          <rect class="s-svc" x="30" y="196" width="260" height="360" rx="10"/>
+          <rect class="s-svc" x="350" y="196" width="260" height="360" rx="10"/>
+          <rect class="s-svc" x="670" y="196" width="260" height="360" rx="10"/>
+          <text class="t-svc" x="46" y="216">LICENSE SERVICE</text>
+          <text class="t-svc" x="366" y="216">DASHBOARD SERVICE</text>
+          <text class="t-svc" x="686" y="216">AUTH SERVICE</text>
+
+          <g>
+            <rect class="s-box s-api" x="50" y="228" width="220" height="54" rx="7"/><text class="t-main" x="160" y="252" text-anchor="middle">License.API</text><text class="t-sub" x="160" y="270" text-anchor="middle">REST + gRPC server</text>
+            <rect class="s-box s-bll" x="50" y="312" width="220" height="54" rx="7"/><text class="t-main" x="160" y="336" text-anchor="middle">License.BLL</text><text class="t-sub" x="160" y="354" text-anchor="middle">rules + gRPC clients</text>
+            <rect class="s-box s-dal" x="50" y="396" width="220" height="54" rx="7"/><text class="t-main" x="160" y="420" text-anchor="middle">License.DAL</text><text class="t-sub" x="160" y="438" text-anchor="middle">LicenseDbContext, repos</text>
+            <path class="a-dep" d="M160 282 V310" marker-end="url(#m-dep)"/><path class="a-dep" d="M160 366 V394" marker-end="url(#m-dep)"/><path class="a-dep" d="M160 450 V480" marker-end="url(#m-dep)"/>
+            <path class="s-box s-cmn" d="M90 490 V526 A70 9 0 0 0 230 526 V490"/><ellipse class="s-box s-cmn" cx="160" cy="490" rx="70" ry="9"/>
+            <text class="t-sub" x="160" y="516" text-anchor="middle">schema: license</text>
+          </g>
+          <g>
+            <rect class="s-box s-api" x="370" y="228" width="220" height="54" rx="7"/><text class="t-main" x="480" y="252" text-anchor="middle">Dashboard.API</text><text class="t-sub" x="480" y="270" text-anchor="middle">REST + gRPC server</text>
+            <rect class="s-box s-bll" x="370" y="312" width="220" height="54" rx="7"/><text class="t-main" x="480" y="336" text-anchor="middle">Dashboard.BLL</text><text class="t-sub" x="480" y="354" text-anchor="middle">aggregates + gRPC clients</text>
+            <rect class="s-box s-dal" x="370" y="396" width="220" height="54" rx="7"/><text class="t-main" x="480" y="420" text-anchor="middle">Dashboard.DAL</text><text class="t-sub" x="480" y="438" text-anchor="middle">widgets, user prefs</text>
+            <path class="a-dep" d="M480 282 V310" marker-end="url(#m-dep)"/><path class="a-dep" d="M480 366 V394" marker-end="url(#m-dep)"/><path class="a-dep" d="M480 450 V480" marker-end="url(#m-dep)"/>
+            <path class="s-box s-cmn" d="M410 490 V526 A70 9 0 0 0 550 526 V490"/><ellipse class="s-box s-cmn" cx="480" cy="490" rx="70" ry="9"/>
+            <text class="t-sub" x="480" y="516" text-anchor="middle">schema: dashboard</text>
+          </g>
+          <g>
+            <rect class="s-box s-api" x="690" y="228" width="220" height="54" rx="7"/><text class="t-main" x="800" y="252" text-anchor="middle">Auth.API</text><text class="t-sub" x="800" y="270" text-anchor="middle">login, tokens, gRPC server</text>
+            <rect class="s-box s-bll" x="690" y="312" width="220" height="54" rx="7"/><text class="t-main" x="800" y="336" text-anchor="middle">Auth.BLL</text><text class="t-sub" x="800" y="354" text-anchor="middle">users, roles + gRPC clients</text>
+            <rect class="s-box s-dal" x="690" y="396" width="220" height="54" rx="7"/><text class="t-main" x="800" y="420" text-anchor="middle">Auth.DAL</text><text class="t-sub" x="800" y="438" text-anchor="middle">AuthDbContext, repos</text>
+            <path class="a-dep" d="M800 282 V310" marker-end="url(#m-dep)"/><path class="a-dep" d="M800 366 V394" marker-end="url(#m-dep)"/><path class="a-dep" d="M800 450 V480" marker-end="url(#m-dep)"/>
+            <path class="s-box s-cmn" d="M730 490 V526 A70 9 0 0 0 870 526 V490"/><ellipse class="s-box s-cmn" cx="800" cy="490" rx="70" ry="9"/>
+            <text class="t-sub" x="800" y="516" text-anchor="middle">schema: auth</text>
+          </g>
+
+          <!-- two-way gRPC between every pair of services -->
+          <path class="a-grpc" d="M274 255 H366" marker-start="url(#m-grpc)" marker-end="url(#m-grpc)"/>
+          <path class="a-grpc" d="M594 255 H686" marker-start="url(#m-grpc)" marker-end="url(#m-grpc)"/>
+          <text class="t-api" x="320" y="246" text-anchor="middle">gRPC</text>
+          <text class="t-api" x="640" y="246" text-anchor="middle">gRPC</text>
+          <path class="a-grpc" d="M250 558 V580 H710 V558" marker-start="url(#m-grpc)" marker-end="url(#m-grpc)"/>
+          <text class="t-api" x="480" y="598" text-anchor="middle">gRPC  License ⇄ Auth</text>
+
+          <!-- contracts + common -->
+          <rect class="s-box s-ctr" x="30" y="614" width="900" height="44" rx="8"/>
+          <text class="t-main" x="480" y="634" text-anchor="middle">Contracts</text>
+          <text class="t-ctr" x="480" y="650" text-anchor="middle">license.proto · auth.proto · dashboard.proto (each service is a server of its own, a client of the others)</text>
+          <rect class="s-box s-cmn" x="30" y="668" width="900" height="44" rx="8"/>
+          <text class="t-main" x="480" y="688" text-anchor="middle">Common</text>
+          <text class="t-sub" x="480" y="704" text-anchor="middle">Common.Core · Common.DAL · Common.Grpc · Common.Auth · Common.Caching · Common.Telemetry</text>
+          <rect class="s-box s-tel" x="30" y="722" width="900" height="44" rx="8"/>
+          <text class="t-main" x="480" y="742" text-anchor="middle">Telemetry: OpenTelemetry → Collector → Application Insights / Grafana</text>
+          <text class="t-sub" x="480" y="758" text-anchor="middle">gateway and every service send traces, metrics and logs; one trace follows a request across all services</text>
+        </svg>
+      </div>
+      <div class="grid2">
+        <div class="card stack">
+          <h2>Reading the diagram</h2>
+          <ul class="rules">
+            <li>Every browser or partner request enters through the <b>API Gateway</b>. It checks the token and permissions (using Redis) before anything reaches a service. Services are not reachable from outside.</li>
+            <li>Solid grey arrows are project references inside one service: <b>API → BLL → DAL → schema</b>.</li>
+            <li>Dashed blue arrows are two-way gRPC links. Every service hosts a gRPC server in its <code>.API</code> and holds gRPC clients for the other services in its <code>.BLL</code>, so Dashboard can call Auth and Auth can call Dashboard, and the same for every pair.</li>
+            <li>Each service reads and writes only its own schema. Dashboard never queries the <code>license</code> or <code>auth</code> tables.</li>
+            <li>Contracts and Common are class libraries that every service references. They are never deployed by themselves.</li>
+          </ul>
+        </div>
+        <div class="card stack">
+          <h2>How it maps to today's code</h2>
+          <div class="tbl"><table>
+            <thead><tr><th>Today</th><th>Becomes</th></tr></thead>
+            <tbody>
+              <tr><td><code>GRPC</code> (client)</td><td><code>Dashboard.API</code> + <code>Dashboard.BLL</code></td></tr>
+              <tr><td><code>GRPC_B2B</code> (gRPC server)</td><td><code>License.API</code> + <code>License.BLL</code></td></tr>
+              <tr><td><code>Protos/weather_b2b.proto</code></td><td><code>Contracts/License.Contracts/Protos/license/v1/license.proto</code></td></tr>
+              <tr><td><code>ApiKeyInterceptor</code></td><td><code>Common/Common.Grpc/Interceptors</code></td></tr>
+            </tbody>
+          </table></div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card stack">
+          <h2>Shared cache entries</h2>
+          <div class="tbl"><table>
+            <thead><tr><th>Entry</th><th>Holds</th><th>Lifetime</th><th>Cleared when</th></tr></thead>
+            <tbody>
+              <tr><td><code>perm:{oid}</code></td><td>The user's permission list, loaded from Auth over gRPC (oid = AD object id)</td><td>10 min in Redis, 1 min in each instance's memory</td><td>Auth changes the user's roles (removes tag <code>user:{oid}</code>)</td></tr>
+              <tr><td><code>blocked:{oid}</code></td><td>Marks a user disabled in this app while their AD token is still valid</td><td>2 hours (longer than an AD access token lives)</td><td>Expires by itself, or Auth removes it when the user is re-enabled</td></tr>
+              <tr><td>Signing keys</td><td>Entra ID's public keys used to verify AD tokens</td><td>In memory, refreshed about once a day</td><td>Microsoft rotates them (handled automatically)</td></tr>
+            </tbody>
+          </table></div>
+          <p class="note">Most requests need no network call for the auth check: the token is verified locally, permissions come from memory, and the blocked-user check is one Redis lookup. After a role change, other gateway instances may use the old permissions for up to one minute.</p>
+        </div>
+        <div class="card stack">
+          <h2>Rules for two-way gRPC</h2>
+          <ul class="rules">
+            <li><b>No compile-time cycles.</b> Dashboard.BLL references <code>Auth.Contracts</code> and Auth.BLL references <code>Dashboard.Contracts</code>. Services never reference each other's projects, so two-way calls never create a project cycle.</li>
+            <li><b>No call loops in one request.</b> If Dashboard calls Auth to answer a request, Auth must not call Dashboard back for that same request. Each call should end in a database read, not another hop back.</li>
+            <li><b>Deadlines travel with the call.</b> <code>EnableCallContextPropagation</code> in Common.Grpc passes the original deadline and cancellation down the chain.</li>
+            <li><b>Ask with gRPC, announce with events.</b> Use gRPC when the caller needs an answer now ("get permissions"). For "something happened" news ("user deleted, remove their widgets"), a message broker such as RabbitMQ or Azure Service Bus is a good later step, so the sender doesn't wait or fail if the receiver is down.</li>
+            <li><b>Service-to-service calls are authenticated too.</b> Internal gRPC calls carry either the user's AD token (when acting for the user) or the calling service's own AD token (managed identity or client credentials). Common.Grpc adds the token and the receiving service validates it.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card stack">
+          <h2>Sign-in with Active Directory</h2>
+          <ul class="rules">
+            <li><b>Microsoft Entra ID (Azure AD) handles login.</b> Users sign in with their company account, with single sign-on and MFA. Our services never handle passwords or issue tokens.</li>
+            <li><b>App registrations:</b> one for the web app (signs users in with MSAL) and one for the platform API (<code>api://company-platform</code>). The gateway and every service validate tokens for that API with Microsoft.Identity.Web.</li>
+            <li><b>AD groups → app roles → permissions.</b> AD groups (for example <code>SG-License-Admins</code>) map to app roles. The Auth service maps roles to fine-grained permissions such as <code>license.read</code>, stores them in the <code>auth</code> schema and caches them in Redis.</li>
+            <li><b>Users are keyed by their AD object id</b> (<code>oid</code> claim) in every schema and cache entry, not by email, which can change.</li>
+            <li><b>Service-to-service calls</b> use each service's own AD identity (managed identity or client credentials), or forward the user's token when acting for the user.</li>
+            <li><b>On-premises AD only?</b> The same design works with AD FS issuing the tokens; only the <code>AzureAd</code> settings change.</li>
+          </ul>
+        </div>
+        <div class="card stack">
+          <h2>Telemetry</h2>
+          <ul class="rules">
+            <li><b>One library.</b> The gateway and every service call <code>AddCommonTelemetry("service-name")</code> from Common.Telemetry. Nobody sets up telemetry by hand.</li>
+            <li><b>Traces</b> follow one request through Gateway → Dashboard → License → Auth, including SQL queries and Redis lookups. Trace context passes automatically over HTTP and gRPC.</li>
+            <li><b>Metrics:</b> request rate, errors and duration per endpoint and per gRPC method, cache hit rate, 401/403 counts, and .NET runtime health.</li>
+            <li><b>Logs:</b> structured <code>ILogger</code> logs carry the trace id and the user's AD object id, so you can jump from a log line to the full trace.</li>
+            <li><b>Collector in the middle.</b> Services send OTLP to an OpenTelemetry Collector, which forwards to Application Insights (or Grafana, Jaeger, Seq). Switching tools changes only <code>deploy/otel-collector.yaml</code>.</li>
+            <li><b>No personal data</b> (names, emails) in logs or span tags.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FLOW -->
+  <section class="view" id="flow" role="tabpanel" aria-labelledby="tab-flow" hidden>
+    <div class="stack">
+    <div class="card stack">
+      <div>
+        <h2>Example 1: a signed-in user opens the dashboard summary</h2>
+        <p class="lede">The token and permission checks happen once, in the gateway, using the shared cache. Services still verify the token but don't repeat the permission lookup. Every hop is recorded as a span in one OpenTelemetry trace, so you can see the whole request and where the time went in one view.</p>
+      </div>
+      <ol class="steps">
+        <li class="l-cmn"><div><div class="where"><b>Browser → Microsoft Entra ID</b></div><p>The user signs in with their company AD account (single sign-on, plus MFA if your policy requires it). The web app uses MSAL to get an access token for <code>api://company-platform</code>. Passwords never reach our services.</p></div></li>
+        <li class="l-cmn"><div><div class="where"><b>Browser</b></div><p>Calls <code>GET /api/dashboard/summary</code> with <code>Authorization: Bearer &lt;token&gt;</code>.</p></div></li>
+        <li class="l-gw"><div><div class="where"><b>API Gateway</b><span class="tag l-gw">Authentication</span></div><p>Checks the token's signature, issuer, audience and expiry locally with Entra ID's public signing keys, which are cached in memory. An invalid or expired token gets <b>401</b>. No network call.</p></div></li>
+        <li class="l-cache"><div><div class="where"><b>API Gateway → Redis</b><span class="tag l-cache">Cache</span></div><p>Blocked-user check: one lookup of <code>blocked:{oid}</code> (the user's AD object id). If the user was disabled in this app, the request gets <b>401</b> even though their AD token is still valid.</p></div></li>
+        <li class="l-cache"><div><div class="where"><b>API Gateway → cache → Auth</b><span class="tag l-gw">Authorization</span></div><p>The route needs <code>dashboard.view</code>. The user's permissions come from memory, then Redis, and only on a miss from Auth.API over gRPC (then kept for 10 minutes). A missing permission gets <b>403</b>.</p></div></li>
+        <li class="l-gw"><div><div class="where"><b>API Gateway</b><span class="tag l-gw">Routing</span></div><p>Applies the rate limit (<b>429</b> if exceeded), then forwards the request to Dashboard.API with the same JWT and an <code>x-correlation-id</code> header.</p></div></li>
+        <li class="l-api"><div><div class="where"><b>Dashboard.API</b><span class="tag l-api">API</span></div><p>Verifies the JWT again with Common.Auth (local and cheap), because services trust only signed tokens, never plain headers. Calls <code>IDashboardService.GetSummaryAsync</code>.</p></div></li>
+        <li class="l-bll"><div><div class="where"><b>Dashboard.BLL</b><span class="tag l-bll">BLL</span></div><p>Checks the data-level rule (does this user belong to this customer?), then calls License and Auth over gRPC in parallel, with deadlines, and reads its own widgets from the DAL.</p></div></li>
+        <li class="l-dal"><div><div class="where"><b>License.API → BLL → DAL</b><span class="tag l-dal">DAL</span></div><p>Applies license rules and reads the <code>license</code> schema. It doesn't call Dashboard back while answering, so there's no loop.</p></div></li>
+        <li class="l-api"><div><div class="where"><b>Dashboard.API → Gateway → Browser</b></div><p>Returns JSON. If License was down, the summary still loads with a "licenses unavailable" flag instead of failing the whole page.</p></div></li>
+      </ol>
+    </div>
+    <div class="card stack">
+      <div>
+        <h2>Example 2: the reverse direction, Auth calls Dashboard</h2>
+        <p class="lede">The same pattern works the other way: here Auth is the caller and Dashboard is the gRPC server.</p>
+      </div>
+      <ol class="steps">
+        <li class="l-gw"><div><div class="where"><b>Admin → API Gateway → Auth.API</b></div><p><code>DELETE /api/auth/users/42</code>. The gateway checks that the admin has <code>user.delete</code>.</p></div></li>
+        <li class="l-bll"><div><div class="where"><b>Auth.BLL</b><span class="tag l-bll">BLL</span></div><p>Disables the user in the <code>auth</code> schema, then uses PermissionCacheInvalidator to clear <code>perm:42</code> and add <code>blocked:42</code> to Redis.</p></div></li>
+        <li class="l-ctr"><div><div class="where"><b>Auth.BLL → Dashboard.API</b><span class="tag l-ctr">gRPC</span></div><p>Calls <code>DashboardGrpc.RemoveUserData</code> using the generated client from <code>Dashboard.Contracts</code>. Dashboard.BLL deletes the user's widgets from the <code>dashboard</code> schema.</p></div></li>
+        <li class="l-cache"><div><div class="where"><b>Next request from user 42</b><span class="tag l-cache">Cache</span></div><p>The gateway finds <code>blocked:42</code> in Redis and returns <b>401</b> straight away, even though the user's AD token hasn't expired yet.</p></div></li>
+      </ol>
+      <p class="note">If the clean-up must not be lost when Dashboard is down, send it as an event through a message broker instead of a direct gRPC call.</p>
+    </div>
+    </div>
+  </section>
+
+  <!-- TEAM -->
+  <section class="view" id="team" role="tabpanel" aria-labelledby="tab-team" hidden>
+    <div class="stack">
+      <div class="card stack">
+        <h2>Who may reference what</h2>
+        <div class="tbl"><table>
+          <thead><tr><th>Project</th><th>Same service BLL</th><th>Same service DAL</th><th>Contracts</th><th>Common</th><th>Other service's BLL/DAL</th></tr></thead>
+          <tbody>
+            <tr><td><code>*.API</code></td><td class="yes">Yes</td><td class="dim">Only for DI in Program.cs</td><td class="yes">Yes (own, for gRPC server)</td><td class="yes">Yes</td><td class="noo">Never</td></tr>
+            <tr><td><code>*.BLL</code></td><td class="dim">—</td><td class="yes">Yes, through interfaces</td><td class="yes">Yes (to call other services)</td><td class="yes">Common.Core</td><td class="noo">Never</td></tr>
+            <tr><td><code>*.DAL</code></td><td class="noo">No</td><td class="dim">—</td><td class="noo">No</td><td class="yes">Common.Core, Common.DAL</td><td class="noo">Never</td></tr>
+            <tr><td><code>Common.*</code></td><td class="noo">No</td><td class="noo">No</td><td class="noo">No</td><td class="yes">Other Common libs</td><td class="noo">Never</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="grid2">
+        <div class="card stack">
+          <h2>Team ownership (CODEOWNERS)</h2>
+          <div class="tbl"><table>
+            <thead><tr><th>Path</th><th>Reviewers</th></tr></thead>
+            <tbody>
+              <tr><td><code>src/Gateway/**</code></td><td>Platform team + Auth team</td></tr>
+              <tr><td><code>src/Services/License/**</code></td><td>License team</td></tr>
+              <tr><td><code>src/Services/Dashboard/**</code></td><td>Dashboard team</td></tr>
+              <tr><td><code>src/Services/Auth/**</code></td><td>Auth team</td></tr>
+              <tr><td><code>src/Contracts/**</code></td><td>Owning team + every consuming team</td></tr>
+              <tr><td><code>src/Common/**</code> (incl. Auth, Caching), <code>Directory.*.props</code></td><td>Tech lead / architects</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="card stack">
+          <h2>Ground rules</h2>
+          <ul class="rules">
+            <li>Controllers and gRPC services stay thin; all logic lives in the BLL.</li>
+            <li>The BLL depends on repository interfaces, so it can be unit-tested with mocks.</li>
+            <li>One DbContext, one schema, one migrations folder per service.</li>
+            <li>Cross-service data comes over gRPC, never through a shared table.</li>
+            <li>Proto changes are additive only. Breaking changes go into a new <code>v2</code> package.</li>
+            <li>Package versions live only in <code>Directory.Packages.props</code>.</li>
+            <li>Every gRPC call sets a deadline; every service exposes <code>/health</code>.</li>
+            <li>All outside traffic enters through the API Gateway; service ports stay on the internal network.</li>
+            <li>The gateway does the coarse checks (logged in, has permission X). Data-level checks (does this user belong to this customer?) happen in the service BLL.</li>
+            <li>Cache keys and lifetimes are defined only in Common.Caching; only Auth clears permission entries.</li>
+            <li>gRPC can go both ways between services, but never in a loop within one request.</li>
+            <li>Users sign in with company AD (Microsoft Entra ID); services never see passwords.</li>
+            <li>Every service calls <code>AddCommonTelemetry</code>; no service has its own telemetry setup.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card stack">
+        <h2>Adding a new service (for example Billing)</h2>
+        <ol class="rules">
+          <li>Create <code>src/Services/Billing/</code> with <code>Billing.API</code>, <code>Billing.BLL</code>, <code>Billing.DAL</code>.</li>
+          <li>Add <code>Billing.Contracts</code> with <code>Protos/billing/v1/billing.proto</code> if other services will call it.</li>
+          <li>Create the <code>billing</code> schema and a database login limited to it; add the connection string to configuration.</li>
+          <li>Reference Common libraries, register the service in <code>deploy/docker-compose.yml</code>, add a CODEOWNERS line and a path-filtered pipeline.</li>
+          <li>Add <code>tests/Billing.UnitTests</code> and <code>tests/Billing.IntegrationTests</code>.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- data ---------- */
+  const L = {api:"l-api",bll:"l-bll",dal:"l-dal",ctr:"l-ctr",cmn:"l-cmn",gw:"l-gw",cache:"l-cache"};
+  const LABEL = {api:"API",bll:"BLL",dal:"DAL",ctr:"Contract",cmn:"Common",gw:"Gateway",cache:"Cache"};
+
+  function service(N, schema, entity, owner, calls, apiNote, bllNote, extraBll){
+    extraBll = extraBll || [];
+    const e = entity, el = entity.charAt(0).toLowerCase()+entity.slice(1);
+    const callRefs = calls.map(c => c+".Contracts");
+    return {n:N, t:"dir", k:"svc", owner,
+      d:`The ${N} microservice. It is built, tested and deployed on its own and is the only code that touches the "${schema}" schema. It is a gRPC server for the other services (in ${N}.API) and a gRPC client of ${calls.join(" and ")} (in ${N}.BLL), so calls can go both ways.`,
+      contains:[N+".API (Web API host)",N+".BLL (business logic)",N+".DAL (data access)","Dockerfile"],
+      kids:[
+      {n:N+".API", t:"proj", k:"api", owner,
+        d:`ASP.NET Core Web API project. It is the entry point of the service: ${apiNote} It wires up dependency injection, auth and logging, and contains no business rules.`,
+        refs:[N+".BLL", N+".DAL (only to register it in Program.cs)", N+".Contracts (gRPC server base classes)", "Common.Grpc, Common.Telemetry, Common.Auth"],
+        never:["Business logic or SQL","Another service's BLL or DAL"],
+        kids:[
+          {n:"Controllers", t:"dir", k:"api", d:"REST endpoints used by the web UI or partners. Each action validates input, calls one BLL method and returns the result.",
+            kids:[{n:N+"Controller.cs", t:"file", k:"api", d:"A thin REST controller. It depends only on the BLL interface.",
+              code:
+`[ApiController]
+[Route("api/${el}s")]
+public class ${N}Controller(I${N}Service service) : ControllerBase
+{
+    [HttpGet("{id:int}")]
+    public async Task<ActionResult<${e}Dto>> Get(int id, CancellationToken ct)
+    {
+        var result = await service.GetByIdAsync(id, ct);
+        return result is null ? NotFound() : Ok(result);
+    }
+}`.replace(/\$\{el\}/g,el).replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}]},
+          {n:"GrpcServices", t:"dir", k:"api", d:"gRPC implementations of this service's contract. Other microservices call these. They map proto messages to BLL DTOs and back.",
+            kids:[{n:N+"GrpcService.cs", t:"file", k:"api", d:"Implements the generated base class from "+N+".Contracts and delegates to the BLL.",
+              code:
+`public class ${N}GrpcService(I${N}Service service) : ${N}Grpc.${N}GrpcBase
+{
+    public override async Task<${e}Reply> Get${e}(Get${e}Request request, ServerCallContext context)
+    {
+        var dto = await service.GetByIdAsync(request.Id, context.CancellationToken)
+                  ?? throw new RpcException(new Status(StatusCode.NotFound, "${e} not found"));
+        return dto.ToReply();   // mapping lives in Mappings/
+    }
+}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)},
+            {n:"Mappings", t:"dir", k:"api", d:"Extension methods that convert BLL DTOs to proto messages (ToReply) and back. Keeps proto types out of the BLL."}]},
+          {n:"Middleware", t:"dir", k:"api", d:"Service-specific middleware, if any. Shared middleware (exception handling, correlation id) comes from Common."},
+          {n:"Program.cs", t:"file", k:"api", d:"Composition root: registers every layer, maps controllers and gRPC services.",
+            code:
+`var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddCommonTelemetry(builder.Configuration, "${N.toLowerCase()}-service");   // Common.Telemetry
+builder.Services.AddGrpc(o => o.AddCommonInterceptors());   // Common.Grpc
+builder.Services.AddCommonJwtAuth(builder.Configuration);   // Common.Auth: re-check the JWT the gateway forwarded
+
+builder.Services.Add${N}Bll();                               // ${N}.BLL/DependencyInjection.cs
+builder.Services.Add${N}Dal(builder.Configuration);          // ${N}.DAL/DependencyInjection.cs
+${calls.map(c=>`builder.Services.AddServiceClient<${c}Grpc.${c}GrpcClient>(builder.Configuration, "Services:${c}");`).join("\n")}
+var app = builder.Build();
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
+app.MapGrpcService<${N}GrpcService>();
+app.MapHealthChecks("/health");
+app.Run();`.replace(/\$\{N\}/g,N)},
+          {n:"appsettings.json", t:"file", k:"api", d:"Configuration. Connection strings and keys come from environment variables or a secret store in real environments.",
+            code:
+`{
+  "ConnectionStrings": {
+    "${N}Db": "Server=sql;Database=CompanyDb;User Id=${schema}_svc;..."
+  },
+  "Services": {
+${calls.length?calls.map(c=>`    "${c}": { "Address": "https://${c.toLowerCase()}-service:8443" }`).join(",\n"):"    // this service calls no other services"}
+  }
+}`.replace(/\$\{N\}/g,N)},
+          {n:"Dockerfile", t:"file", k:"cmn", d:"Builds a container image for this service only. The build context is the repo root so it can copy Common and Contracts."}
+        ]},
+      {n:N+".BLL", t:"proj", k:"bll", owner,
+        d:`Class library with the business logic of ${N}. ${bllNote} It knows nothing about HTTP, gRPC or SQL.`,
+        refs:[N+".DAL (repository interfaces)", ...callRefs.map(c=>c+" (generated gRPC clients)"), "Common.Core"],
+        never:[N+".API","EF Core / SqlClient directly","Another service's BLL or DAL"],
+        kids:[
+          {n:"Interfaces", t:"dir", k:"bll", d:"Public service interfaces that the API layer depends on.",
+            kids:[{n:"I"+N+"Service.cs", t:"file", k:"bll", d:"The contract the API calls.",
+              code:
+`public interface I${N}Service
+{
+    Task<${e}Dto?> GetByIdAsync(int id, CancellationToken ct = default);
+    Task<IReadOnlyList<${e}Dto>> ListAsync(int customerId, CancellationToken ct = default);
+    Task<Result<int>> CreateAsync(Create${e}Request request, CancellationToken ct = default);
+}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}]},
+          {n:"Services", t:"dir", k:"bll", d:"Implementations of the interfaces: business rules, workflows, calls to repositories and to other services.",
+            kids:[{n:N+"Service.cs", t:"file", k:"bll", d:"Business logic. Depends on repository interfaces"+(calls.length?" and gRPC clients for "+calls.join(" and ")+".":"."),
+              code:
+`public class ${N}Service(I${e}Repository repo${calls.map(c=>`, ${c}Grpc.${c}GrpcClient ${c.toLowerCase()}Client`).join("")}) : I${N}Service
+{
+    public async Task<${e}Dto?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        var entity = await repo.GetByIdAsync(id, ct);
+        return entity?.ToDto();
+    }
+
+    public async Task<Result<int>> CreateAsync(Create${e}Request request, CancellationToken ct = default)
+    {
+        // business rules live here
+        if (request.CustomerId <= 0) return Result.Fail<int>("Customer is required");
+${calls.length?`        // data owned by another service comes over gRPC, never from its tables
+        var other = await ${calls[0].toLowerCase()}Client.GetAsync(new() { Id = request.CustomerId },
+                        deadline: DateTime.UtcNow.AddSeconds(5), cancellationToken: ct);
+`:""}        var id = await repo.AddAsync(request.ToEntity(), ct);
+        return Result.Ok(id);
+    }
+    // ...
+}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}]},
+          ...extraBll,
+          {n:"Models", t:"dir", k:"bll", d:"DTOs and request models passed between API and BLL, e.g. "+e+"Dto, Create"+e+"Request. Never EF entities."},
+          {n:"Validators", t:"dir", k:"bll", d:"Input validation rules (for example FluentValidation validators) for the request models."},
+          {n:"Mappings", t:"dir", k:"bll", d:"Entity ↔ DTO mapping (manual extension methods or Mapster/AutoMapper profiles)."},
+          {n:"DependencyInjection.cs", t:"file", k:"bll", d:"One extension method that registers everything in this library, so Program.cs stays short.",
+            code:
+`public static class DependencyInjection
+{
+    public static IServiceCollection Add${N}Bll(this IServiceCollection services)
+    {
+        services.AddScoped<I${N}Service, ${N}Service>();
+        // validators, mappers...
+        return services;
+    }
+}`.replace(/\$\{N\}/g,N)}
+        ]},
+      {n:N+".DAL", t:"proj", k:"dal", owner,
+        d:`Class library for data access. It owns the "${schema}" schema: EF Core DbContext, entity classes, repositories and migrations.`,
+        refs:["Common.DAL (base repository, audit fields)","Common.Core","EF Core / Dapper"],
+        never:[N+".BLL or "+N+".API","Tables in any other schema"],
+        kids:[
+          {n:"Entities", t:"dir", k:"dal", d:"Table-mapped classes. They stay inside the DAL and BLL; the API never returns them.",
+            kids:[{n:e+".cs", t:"file", k:"dal", d:"Entity for the "+schema+"."+e+"s table.",
+              code:
+`public class ${e} : AuditableEntity        // Common.DAL: CreatedOn, CreatedBy, ModifiedOn...
+{
+    public int Id { get; set; }
+    public int CustomerId { get; set; }
+    public string Name { get; set; } = "";
+    public bool IsActive { get; set; }
+}`.replace(/\$\{e\}/g,e)}]},
+          {n:"Configurations", t:"dir", k:"dal", d:"IEntityTypeConfiguration classes: table names, keys, indexes, column lengths."},
+          {n:"Repositories", t:"dir", k:"dal", d:"Repository interfaces and implementations used by the BLL.",
+            kids:[{n:"I"+e+"Repository.cs", t:"file", k:"dal", d:"Interface the BLL depends on (so the BLL can be tested with a mock).",
+              code:
+`public interface I${e}Repository : IRepository<${e}>     // Common.DAL generic base
+{
+    Task<IReadOnlyList<${e}>> ListByCustomerAsync(int customerId, CancellationToken ct);
+}`.replace(/\$\{e\}/g,e)},
+              {n:e+"Repository.cs", t:"file", k:"dal", d:"EF Core implementation.",
+              code:
+`public class ${e}Repository(${N}DbContext db) : Repository<${e}>(db), I${e}Repository
+{
+    public async Task<IReadOnlyList<${e}>> ListByCustomerAsync(int customerId, CancellationToken ct) =>
+        await db.${e}s.AsNoTracking()
+                       .Where(x => x.CustomerId == customerId && x.IsActive)
+                       .ToListAsync(ct);
+}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}]},
+          {n:N+"DbContext.cs", t:"file", k:"dal", d:`EF Core context pinned to the "${schema}" schema.`,
+            code:
+`public class ${N}DbContext(DbContextOptions<${N}DbContext> options) : DbContext(options)
+{
+    public DbSet<${e}> ${e}s => Set<${e}>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.HasDefaultSchema("${schema}");
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(${N}DbContext).Assembly);
+    }
+}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)},
+          {n:"Migrations", t:"dir", k:"dal", d:"EF Core migrations for this schema only. Each service migrates independently, e.g. dotnet ef migrations add Init -p "+N+".DAL -s "+N+".API."},
+          {n:"DependencyInjection.cs", t:"file", k:"dal", d:"Registers the DbContext and repositories.",
+            code:
+`public static IServiceCollection Add${N}Dal(this IServiceCollection services, IConfiguration config)
+{
+    services.AddDbContext<${N}DbContext>(o => o.UseSqlServer(config.GetConnectionString("${N}Db")));
+    services.AddScoped<I${e}Repository, ${e}Repository>();
+    return services;
+}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}
+        ]}
+    ]};
+  }
+
+  function contract(N, schema, rpcs){
+    return {n:N+".Contracts", t:"proj", k:"ctr", owner:N+" team (consumers review changes)",
+      d:`Class library that holds ${N}'s .proto files and generates the C# messages, the server base class and the client. ${N}.API references it as a server; any service that calls ${N} references it as a client.`,
+      refs:["Grpc.Tools, Google.Protobuf, Grpc.Net.Client (packages only)"],
+      never:["Any service project","Business logic"],
+      kids:[{n:"Protos", t:"dir", k:"ctr", d:"Proto files grouped by version, so a breaking change can ship as v2 while v1 keeps working.",
+        kids:[{n:schema, t:"dir", k:"ctr", d:"Package folder for "+N+".", kids:[{n:"v1", t:"dir", k:"ctr", d:"Version 1 of the contract.",
+          kids:[{n:schema+".proto", t:"file", k:"ctr", d:"The contract. Add fields with new numbers only; never renumber or reuse.",
+            code:
+`syntax = "proto3";
+option csharp_namespace = "${N}.Contracts.V1";
+package ${schema}.v1;
+
+service ${N}Grpc {
+${rpcs.map(r=>"  rpc "+r+";").join("\n")}
+}
+
+message Get${N}Request { int32 id = 1; }
+// ... messages`.replace(/\$\{N\}/g,N)}]}]}]},
+        {n:N+".Contracts.csproj", t:"file", k:"ctr", d:"Generates both client and server code. Can be packed as a NuGet package for partners or other repos.",
+          code:
+`<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" />
+    <PackageReference Include="Grpc.Net.Client" />
+    <PackageReference Include="Grpc.AspNetCore.Server" />
+    <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="Protos\\**\\*.proto" GrpcServices="Both" />
+  </ItemGroup>
+</Project>`}]};
+  }
+
+  const TREE = {n:"CompanySolution", t:"dir", k:"cmn", d:"Repository root. One Git repo (monorepo) holds every service, the shared contracts and libraries, tests and deployment files. Each service is still built and deployed on its own.",
+    contains:["src/ — all production code","tests/ — test projects, one set per service","deploy/ — docker-compose and Kubernetes files","Shared build settings at the root"],
+    kids:[
+    {n:"src", t:"dir", k:"cmn", d:"All production code, split into Gateway, Services, Contracts and Common.", kids:[
+      {n:"Gateway", t:"dir", k:"gw", d:"The single public entry point. Browsers and partners never call a service directly; every request comes through here first.", kids:[
+        {n:"ApiGateway", t:"proj", k:"gw", owner:"Platform / Auth team",
+          d:"ASP.NET Core project running the YARP reverse proxy. For every request it validates the company AD (Microsoft Entra ID) token, rejects users disabled in this app, checks that the user has the permission the route needs (using the shared cache), applies rate limits, and then forwards the request to the right service. It has no business logic and no database.",
+          refs:["Common.Auth (JWT setup, permission policies)","Common.Caching (HybridCache + Redis)","Auth.Contracts (gRPC client, used only on a cache miss)","Common.Telemetry","Yarp.ReverseProxy"],
+          never:["Any service's BLL or DAL","Data-level rules such as 'may this user see this customer's licenses?' (those stay in the service BLL)"],
+          kids:[
+            {n:"Program.cs", t:"file", k:"gw", d:"The order of the middleware matters: authenticate, check revocation, authorize, rate limit, then proxy.", code:
+`var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCommonTelemetry(builder.Configuration, "api-gateway");   // traces, metrics, logs
+builder.Services.AddCommonCaching(builder.Configuration);        // HybridCache: memory (L1) + Redis (L2)
+
+// 1. Authentication: validate the company AD (Microsoft Entra ID) access token locally
+//    (signature, issuer, audience, expiry). Entra's signing keys are cached; no call to AD per request.
+builder.Services.AddCommonJwtAuth(builder.Configuration);         // Common.Auth
+
+// 2. Authorization: each route names a permission ("perm:dashboard.view").
+builder.Services.AddPermissionPolicies();                         // Common.Auth
+builder.Services.AddScoped<IPermissionProvider, PermissionProvider>();
+builder.Services.AddServiceClient<AuthGrpc.AuthGrpcClient>(builder.Configuration, "Services:Auth");
+
+builder.Services.AddRateLimiter(o => o.AddFixedWindowLimiter("per-user", l =>
+{
+    l.PermitLimit = 100;
+    l.Window = TimeSpan.FromMinutes(1);
+}));
+
+// 3. Reverse proxy: routes, required permissions and service addresses come from appsettings.json
+builder.Services.AddReverseProxy()
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+
+var app = builder.Build();
+app.UseCorrelationId();                              // Common.Telemetry
+app.UseAuthentication();                             // 401 if the token is invalid or expired
+app.UseMiddleware<BlockedUserMiddleware>();          // 401 if the user is disabled in this app
+app.UseAuthorization();                              // 403 if the permission is missing
+app.UseRateLimiter();                                // 429 if too many requests
+app.MapReverseProxy();
+app.MapHealthChecks("/health");
+app.Run();`},
+            {n:"Authorization", t:"dir", k:"gw", d:"Loads a user's permissions through the shared cache. The policy and handler themselves live in Common.Auth so services can reuse them.", kids:[
+              {n:"PermissionProvider.cs", t:"file", k:"cache", d:"Looks in memory first, then Redis, and calls Auth over gRPC only when both are empty. At most one Auth call per user every 10 minutes, shared by all gateway instances.", code:
+`public class PermissionProvider(HybridCache cache, AuthGrpc.AuthGrpcClient auth) : IPermissionProvider
+{
+    public async Task<IReadOnlySet<string>> GetPermissionsAsync(string userId, CancellationToken ct)
+    {
+        var permissions = await cache.GetOrCreateAsync(
+            CacheKeys.UserPermissions(userId),                // "perm:{userId}"
+            async token =>
+            {
+                // Runs only on a cache miss (memory and Redis both empty)
+                var reply = await auth.GetPermissionsAsync(new() { UserId = userId },
+                                deadline: DateTime.UtcNow.AddSeconds(3), cancellationToken: token);
+                return reply.Permissions.ToArray();
+            },
+            CacheOptions.Permissions,                         // 10 min in Redis, 1 min in memory
+            tags: [CacheKeys.UserTag(userId)],                // lets Auth clear it on a role change
+            cancellationToken: ct);
+
+        return permissions.ToHashSet();
+    }
+}`}]},
+            {n:"Middleware", t:"dir", k:"gw", d:"Gateway-only middleware.", kids:[
+              {n:"BlockedUserMiddleware.cs", t:"file", k:"cache", d:"An AD access token stays valid until it expires (about an hour). If a user is disabled in this app before then, Auth adds them to a Redis block list, and this check rejects them straight away.", code:
+`public class BlockedUserMiddleware(RequestDelegate next, IConnectionMultiplexer redis)
+{
+    public async Task InvokeAsync(HttpContext context)
+    {
+        var userId = context.User.GetObjectId();                     // AD object id (oid claim)
+        if (userId is not null && await redis.GetDatabase().KeyExistsAsync(CacheKeys.BlockedUser(userId)))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return;
+        }
+        await next(context);
+    }
+}`}]},
+            {n:"appsettings.json", t:"file", k:"gw", d:"Each route says which service it goes to and which permission it needs. Adding an endpoint usually means adding a route here, not code.", code:
+`{
+  "AzureAd": {
+    "Instance": "https://login.microsoftonline.com/",
+    "TenantId": "<your tenant id>",
+    "ClientId": "<gateway app registration id>",
+    "Audience": "api://company-platform"
+  },
+  "Redis": { "Configuration": "redis:6379" },
+  "ReverseProxy": {
+    "Routes": {
+      "auth":      { "ClusterId": "auth",      "AuthorizationPolicy": "default",
+                     "Match": { "Path": "/api/auth/{**rest}" } },
+      "dashboard": { "ClusterId": "dashboard", "AuthorizationPolicy": "perm:dashboard.view",
+                     "RateLimiterPolicy": "per-user",
+                     "Match": { "Path": "/api/dashboard/{**rest}" } },
+      "licenses":  { "ClusterId": "license",   "AuthorizationPolicy": "perm:license.read",
+                     "Match": { "Path": "/api/licenses/{**rest}" } }
+    },
+    "Clusters": {
+      "auth":      { "Destinations": { "d1": { "Address": "https://auth-service:8443" } } },
+      "dashboard": { "Destinations": { "d1": { "Address": "https://dashboard-service:8443" } } },
+      "license":   { "Destinations": { "d1": { "Address": "https://license-service:8443" } } }
+    }
+  }
+}`},
+            {n:"Dockerfile", t:"file", k:"cmn", d:"The only container exposed to the internet or load balancer. Service containers stay on the internal network."}
+          ]}
+      ]},
+      {n:"Services", t:"dir", k:"cmn", d:"One folder per business area. Each folder is one deployable microservice with its own schema.", kids:[
+        service("License","license","License","License team",["Auth","Dashboard"],
+          "REST endpoints for license screens, and a gRPC server so Dashboard and partners can query licenses.",
+          "Issuing, renewing and validating licenses, expiry and grace-period rules."),
+        service("Dashboard","dashboard","Widget","Dashboard team",["License","Auth"],
+          "REST endpoints that feed the dashboard UI.",
+          "Builds dashboard summaries by combining its own widget data with data fetched from License and Auth over gRPC."),
+        service("Auth","auth","User","Auth team",["Dashboard","License"],
+          "a gRPC server the gateway and other services use to look up users and their permissions, plus admin endpoints to manage roles. There is no login or password endpoint: users sign in with company AD (Microsoft Entra ID).",
+          "Maps AD users and AD groups to app roles and permissions, creates the user record on first sign-in, reads profile details from Microsoft Graph, and clears the shared cache when a user's roles change or the user is disabled.",
+          [{n:"Caching", t:"dir", k:"cache", d:"Keeps the shared cache correct. Auth is the only service that changes permissions, so it is the one that clears them from the cache.",
+            kids:[{n:"PermissionCacheInvalidator.cs", t:"file", k:"cache", d:"Called by UserService/RoleService after a role change, and when a user is disabled.",
+              code:
+`public class PermissionCacheInvalidator(HybridCache cache, IConnectionMultiplexer redis)
+{
+    // After a user's roles or permissions change: the next request reloads them from Auth
+    public Task OnPermissionsChangedAsync(string userId, CancellationToken ct) =>
+        cache.RemoveByTagAsync(CacheKeys.UserTag(userId), ct).AsTask();
+
+    // When a user is disabled in this app: block them at the gateway until their AD token runs out
+    public Task BlockUserAsync(string userObjectId) =>
+        redis.GetDatabase().StringSetAsync(CacheKeys.BlockedUser(userObjectId), "1",
+            expiry: TimeSpan.FromHours(2));          // longer than an AD access token lives
+}`}]}])
+      ]},
+      {n:"Contracts", t:"dir", k:"ctr", d:"The only code services share about each other: the gRPC contracts. One project per service that exposes gRPC.", kids:[
+        contract("License","license",["GetLicense (GetLicenseRequest) returns (LicenseReply)","GetActiveLicenses (CustomerRequest) returns (LicenseListReply)"]),
+        contract("Auth","auth",["GetUserProfile (UserRequest) returns (UserProfileReply)","GetPermissions (UserRequest) returns (PermissionsReply)"]),
+        contract("Dashboard","dashboard",["GetSummary (CustomerRequest) returns (SummaryReply)","RemoveUserData (UserRequest) returns (Ack)"])
+      ]},
+      {n:"Common", t:"dir", k:"cmn", d:"Shared class libraries for cross-cutting plumbing. Never deployed alone, and never holds business rules, because a change here affects every service.", kids:[
+        {n:"Common.Core", t:"proj", k:"cmn", owner:"Tech lead", d:"Basic building blocks with no dependencies: Result<T>, base exceptions, constants, enums, guard helpers.",
+          refs:["Nothing (pure .NET)"], never:["Any service project","EF Core, ASP.NET"],
+          kids:[{n:"Results", t:"dir", k:"cmn", d:"Result<T> type so the BLL can return success/failure without throwing.",
+            kids:[{n:"Result.cs", t:"file", k:"cmn", d:"Simple result wrapper.", code:
+`public record Result<T>(bool IsSuccess, T? Value, string? Error)
+{
+    public static Result<T> Ok(T value) => new(true, value, null);
+    public static Result<T> Fail(string error) => new(false, default, error);
+}`}]},
+            {n:"Exceptions", t:"dir", k:"cmn", d:"NotFoundException, BusinessRuleException, etc., mapped to HTTP/gRPC codes in one place."},
+            {n:"Constants", t:"dir", k:"cmn", d:"Header names, claim types, role names shared by all services."}]},
+        {n:"Common.DAL", t:"proj", k:"cmn", owner:"Tech lead", d:"Data-access base classes: generic repository, AuditableEntity, unit of work, a SaveChanges interceptor that fills audit columns.",
+          refs:["Common.Core","EF Core"], never:["Any service's DbContext or entities"],
+          kids:[{n:"Repository.cs", t:"file", k:"cmn", d:"Generic base repository that service repositories inherit.", code:
+`public abstract class Repository<T>(DbContext db) : IRepository<T> where T : class
+{
+    public Task<T?> GetByIdAsync(int id, CancellationToken ct) => db.Set<T>().FindAsync([id], ct).AsTask();
+    public async Task<int> AddAsync(T entity, CancellationToken ct)
+    {
+        db.Add(entity);
+        await db.SaveChangesAsync(ct);
+        return (int)db.Entry(entity).Property("Id").CurrentValue!;
+    }
+}`},{n:"AuditableEntity.cs", t:"file", k:"cmn", d:"Base class with CreatedOn, CreatedBy, ModifiedOn, ModifiedBy, IsDeleted."}]},
+        {n:"Common.Grpc", t:"proj", k:"cmn", owner:"Tech lead", d:"gRPC plumbing: API-key / JWT interceptors, error-to-status mapping, and an AddServiceClient helper that sets the address, deadline defaults, retries and credentials for every client.",
+          refs:["Common.Core","Grpc.AspNetCore, Grpc.Net.ClientFactory"], never:["Any service's Contracts"],
+          kids:[{n:"Interceptors", t:"dir", k:"cmn", d:"Server interceptors shared by all services (today's ApiKeyInterceptor moves here), plus a logging interceptor."},
+            {n:"ServiceClientExtensions.cs", t:"file", k:"cmn", d:"One call to register any gRPC client the same way.", code:
+`public static IHttpClientBuilder AddServiceClient<TClient>(this IServiceCollection services,
+    IConfiguration config, string section) where TClient : class
+{
+    var cfg = config.GetSection(section);
+    return services.AddGrpcClient<TClient>(o => o.Address = new Uri(cfg["Address"]!))
+        // When this call happens inside an incoming gRPC call, pass on its deadline and
+        // cancellation, so a chain like Dashboard -> Auth -> License can never outlive the original request
+        .EnableCallContextPropagation(o => o.SuppressContextNotFoundErrors = true)
+        .AddCallCredentials(async (_, metadata, sp) =>
+        {
+            // Service-to-service: an AD token for the target service, using this service's own
+            // identity (managed identity / client credentials). Tokens are cached by Microsoft.Identity.Web.
+            var tokens = sp.GetRequiredService<ITokenAcquisition>();
+            var token = await tokens.GetAccessTokenForAppAsync(cfg["Scope"]!);   // e.g. api://license-service/.default
+            metadata.Add("Authorization", $"Bearer {token}");
+        })
+        .AddStandardResilienceHandler();   // retries + timeouts
+}`}]},
+        {n:"Common.Telemetry", t:"proj", k:"cmn", owner:"Tech lead",
+          d:"One place that sets up observability for the gateway and every service with OpenTelemetry: distributed traces, metrics and structured logs, all tagged with the service name and sent over OTLP to a collector. Trace context (W3C traceparent) flows automatically over HTTP and gRPC, so one browser request appears as a single trace across Gateway → Dashboard → License → Auth, including SQL and Redis calls.",
+          refs:["Common.Core","OpenTelemetry.Extensions.Hosting","OpenTelemetry instrumentation for AspNetCore, Http, GrpcNetClient, SqlClient, StackExchangeRedis","OpenTelemetry.Exporter.OpenTelemetryProtocol"],
+          never:["Business logic","Personal data (names, emails) in logs or span tags; use the AD object id instead"],
+          kids:[
+            {n:"TelemetryExtensions.cs", t:"file", k:"cmn", d:"Every service and the gateway call this once in Program.cs. Nobody configures telemetry by hand.", code:
+`public static IServiceCollection AddCommonTelemetry(this IServiceCollection services,
+    IConfiguration config, string serviceName)
+{
+    services.AddOpenTelemetry()
+        .ConfigureResource(r => r.AddService(serviceName))
+        .WithTracing(t => t
+            .AddAspNetCoreInstrumentation()        // incoming REST and gRPC calls
+            .AddGrpcClientInstrumentation()        // outgoing gRPC to other services
+            .AddHttpClientInstrumentation()        // outgoing HTTP (Entra ID, Graph)
+            .AddSqlClientInstrumentation()         // DAL queries
+            .AddRedisInstrumentation()             // cache lookups
+            .AddSource("Company.*")                // custom spans from BLL code
+            .AddOtlpExporter())                    // endpoint from OTEL_EXPORTER_OTLP_ENDPOINT
+        .WithMetrics(m => m
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddRuntimeInstrumentation()
+            .AddMeter("Company.*")                 // custom metrics, see Metrics.cs
+            .AddOtlpExporter())
+        .WithLogging(l => l.AddOtlpExporter());   // ILogger logs, linked to the trace id
+
+    services.AddHealthChecks();
+    return services;
+}`},
+            {n:"Metrics.cs", t:"file", k:"cmn", d:"Custom platform metrics defined once and used by the gateway and services.", code:
+`public static class CompanyMetrics
+{
+    private static readonly Meter Meter = new("Company.Platform");
+
+    public static readonly Counter<long> CacheHits   = Meter.CreateCounter<long>("cache.hits");
+    public static readonly Counter<long> CacheMisses = Meter.CreateCounter<long>("cache.misses");
+    public static readonly Counter<long> AuthDenied  = Meter.CreateCounter<long>("auth.denied");   // tag reason = 401 / 403
+}`},
+            {n:"CorrelationIdMiddleware.cs", t:"file", k:"cmn", d:"Reads or creates x-correlation-id, adds it to the current trace and log scope, and returns it in the response so support can find any request from a user's screenshot."}
+          ]},
+        {n:"Common.Auth", t:"proj", k:"cmn", owner:"Auth team + tech lead", d:"Shared authentication and authorization setup used by the gateway and every API: validation of company AD (Microsoft Entra ID) tokens with Microsoft.Identity.Web (AddCommonJwtAuth), permission policies named perm:<permission>, and the handler that checks them. Nobody in the platform issues tokens; Entra ID does.",
+          refs:["Common.Core","Microsoft.Identity.Web"], never:["Auth.BLL or Auth.DAL","Auth.Contracts (the gateway supplies IPermissionProvider)"],
+          kids:[
+            {n:"JwtAuthExtensions.cs", t:"file", k:"cmn", d:"One call to validate tokens the same way everywhere.", code:
+`public static IServiceCollection AddCommonJwtAuth(this IServiceCollection services, IConfiguration config)
+{
+    // Validates access tokens issued by Microsoft Entra ID (Azure AD) for our API.
+    // Entra's signing keys are downloaded once and cached, so there is no call to AD per request.
+    services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddMicrosoftIdentityWebApi(config.GetSection("AzureAd"))
+        .EnableTokenAcquisitionToCallDownstreamApi()     // AD tokens for service-to-service gRPC
+        .AddInMemoryTokenCaches();
+    return services;
+}
+
+// appsettings.json
+// "AzureAd": {
+//   "Instance": "https://login.microsoftonline.com/",
+//   "TenantId": "<your tenant id>",
+//   "ClientId": "<this service's app registration id>",
+//   "Audience": "api://company-platform"
+// }`},
+            {n:"PermissionHandler.cs", t:"file", k:"cmn", d:"Checks the permission a route needs against the user's permissions, which IPermissionProvider loads through the cache.", code:
+`public record PermissionRequirement(string Permission) : IAuthorizationRequirement;
+
+public class PermissionHandler(IPermissionProvider provider) : AuthorizationHandler<PermissionRequirement>
+{
+    protected override async Task HandleRequirementAsync(
+        AuthorizationHandlerContext context, PermissionRequirement requirement)
+    {
+        var userId = context.User.GetObjectId();                       // AD object id (oid claim)
+        if (userId is null) return;                                    // results in 401
+
+        var permissions = await provider.GetPermissionsAsync(userId, CancellationToken.None);
+        if (permissions.Contains(requirement.Permission))
+            context.Succeed(requirement);                              // otherwise 403
+    }
+}`},
+            {n:"PermissionPolicyProvider.cs", t:"file", k:"cmn", d:"Turns any policy name like perm:license.read into a PermissionRequirement, so permissions never need registering one by one."},
+            {n:"IPermissionProvider.cs", t:"file", k:"cmn", d:"Interface only. The gateway implements it with the cache + Auth gRPC; tests can fake it."}
+          ]},
+        {n:"Common.Caching", t:"proj", k:"cache", owner:"Tech lead",
+          d:"Shared caching setup for the gateway and any service that needs it: .NET HybridCache with a fast in-memory layer (L1) on each instance and Redis (L2) shared by all instances, plus the key names and default lifetimes, so everyone reads and clears the same entries.",
+          refs:["Common.Core","Microsoft.Extensions.Caching.Hybrid","Microsoft.Extensions.Caching.StackExchangeRedis"],
+          never:["Any service project","Business data without a clear expiry and invalidation plan"],
+          kids:[
+            {n:"CachingExtensions.cs", t:"file", k:"cache", d:"Registers Redis and HybridCache with the company defaults.", code:
+`public static IServiceCollection AddCommonCaching(this IServiceCollection services, IConfiguration config)
+{
+    var redis = config["Redis:Configuration"]!;
+
+    services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redis));
+    services.AddStackExchangeRedisCache(o => o.Configuration = redis);   // L2: shared by every instance
+
+    services.AddHybridCache(o =>                                          // L1 memory in front of Redis
+    {
+        o.DefaultEntryOptions = new HybridCacheEntryOptions
+        {
+            Expiration = TimeSpan.FromMinutes(10),
+            LocalCacheExpiration = TimeSpan.FromMinutes(1)
+        };
+    });
+    return services;
+}`},
+            {n:"CacheKeys.cs", t:"file", k:"cache", d:"Every cache key in one place, so the gateway that reads an entry and Auth that clears it can't drift apart.", code:
+`public static class CacheKeys
+{
+    public static string UserPermissions(string userId) => $"perm:{userId}";
+    public static string UserTag(string userId)         => $"user:{userId}";
+    public static string BlockedUser(string userId)     => $"blocked:{userId}";
+}
+
+public static class CacheOptions
+{
+    public static readonly HybridCacheEntryOptions Permissions = new()
+    {
+        Expiration = TimeSpan.FromMinutes(10),          // in Redis
+        LocalCacheExpiration = TimeSpan.FromMinutes(1)  // in each instance's memory
+    };
+}`}
+          ]}
+      ]}
+    ]},
+    {n:"tests", t:"dir", k:"cmn", d:"Test projects, mirrored per service so each team runs only its own tests in its pipeline.", kids:[
+      {n:"License.UnitTests", t:"proj", k:"bll", d:"Tests License.BLL with mocked repositories and gRPC clients.", refs:["License.BLL","xUnit, NSubstitute/Moq"], never:["A real database"]},
+      {n:"License.IntegrationTests", t:"proj", k:"api", d:"Starts License.API in memory with WebApplicationFactory and calls it over REST and gRPC against a test database (Testcontainers).", refs:["License.API"], never:[]},
+      {n:"Dashboard.UnitTests", t:"proj", k:"bll", d:"Tests Dashboard.BLL, including what happens when License or Auth is unavailable.", refs:["Dashboard.BLL"], never:[]},
+      {n:"Auth.UnitTests", t:"proj", k:"bll", d:"Tests Auth.BLL: password rules, token creation, role checks.", refs:["Auth.BLL"], never:[]}
+    ]},
+    {n:"deploy", t:"dir", k:"cmn", d:"Everything needed to run the services outside Visual Studio.", kids:[
+      {n:"docker-compose.yml", t:"file", k:"cmn", d:"Runs all services and SQL Server locally with one command: docker compose up.", code:
+`services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+  redis:
+    image: redis:7-alpine
+  otel-collector:                    # receives telemetry from every service
+    image: otel/opentelemetry-collector-contrib:0.110.0
+    volumes: ["./otel-collector.yaml:/etc/otelcol-contrib/config.yaml"]
+    environment:
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=...
+  # every service below also gets: OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+  api-gateway:                       # the only service with a public port
+    build: { context: .., dockerfile: src/Gateway/ApiGateway/Dockerfile }
+    ports: ["8080:8080"]
+    environment:
+      - Redis__Configuration=redis:6379
+      - Services__Auth__Address=https://auth-service:8443
+  license-service:
+    build: { context: .., dockerfile: src/Services/License/License.API/Dockerfile }
+    environment:
+      - ConnectionStrings__LicenseDb=Server=sql;Database=CompanyDb;...
+      - Services__Auth__Address=https://auth-service:8443
+  auth-service:
+    build: { context: .., dockerfile: src/Services/Auth/Auth.API/Dockerfile }
+  dashboard-service:
+    build: { context: .., dockerfile: src/Services/Dashboard/Dashboard.API/Dockerfile }
+    environment:
+      - Services__License__Address=https://license-service:8443
+      - Services__Auth__Address=https://auth-service:8443`},
+      {n:"otel-collector.yaml", t:"file", k:"cmn", d:"OpenTelemetry Collector config. It receives OTLP from every service and forwards traces, metrics and logs to your monitoring tool. Switching tools (Application Insights, Grafana, Jaeger, Seq) changes only this file, not the services.", code:
+`receivers:
+  otlp:
+    protocols: { grpc: {}, http: {} }
+processors:
+  batch: {}
+exporters:
+  azuremonitor:
+    connection_string: \${env:APPLICATIONINSIGHTS_CONNECTION_STRING}
+service:
+  pipelines:
+    traces:  { receivers: [otlp], processors: [batch], exporters: [azuremonitor] }
+    metrics: { receivers: [otlp], processors: [batch], exporters: [azuremonitor] }
+    logs:    { receivers: [otlp], processors: [batch], exporters: [azuremonitor] }`},
+      {n:"k8s", t:"dir", k:"cmn", d:"Kubernetes manifests or Helm charts, one folder per service (deployment, service, config, secrets reference)."}
+    ]},
+    {n:".github/workflows", t:"dir", k:"cmn", d:"CI/CD pipelines (or azure-pipelines/). One pipeline per service, triggered only by changes under that service's path, Contracts or Common.", kids:[
+      {n:"license.yml", t:"file", k:"cmn", d:"Builds, tests and deploys License only.", code:
+`on:
+  push:
+    paths:
+      - "src/Services/License/**"
+      - "src/Contracts/License.Contracts/**"
+      - "src/Common/**"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+      - run: dotnet test tests/License.UnitTests
+      - run: docker build -f src/Services/License/License.API/Dockerfile .`}]},
+    {n:"Directory.Build.props", t:"file", k:"cmn", d:"Settings every project inherits, so nobody sets them per project.", code:
+`<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+</Project>`},
+    {n:"Directory.Packages.props", t:"file", k:"cmn", d:"Central package management: every NuGet version is set once here, so all services use the same Grpc, EF Core and logging versions.", code:
+`<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="Grpc.AspNetCore" Version="2.85.0" />
+    <PackageVersion Include="Grpc.Net.ClientFactory" Version="2.85.0" />
+    <PackageVersion Include="Grpc.Tools" Version="2.85.0" />
+    <PackageVersion Include="Google.Protobuf" Version="3.36.2" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+  </ItemGroup>
+</Project>`},
+    {n:".editorconfig", t:"file", k:"cmn", d:"Shared code style (naming, spacing, analyzers) so formatting doesn't cause merge conflicts."},
+    {n:"CODEOWNERS", t:"file", k:"cmn", d:"Routes pull-request reviews to the team that owns each folder.", code:
+`/src/Gateway/              @company/platform-team @company/auth-team
+/src/Services/License/     @company/license-team
+/src/Services/Dashboard/   @company/dashboard-team
+/src/Services/Auth/        @company/auth-team
+/src/Contracts/            @company/license-team @company/dashboard-team @company/auth-team
+/src/Common/               @company/architects
+/Directory.*.props         @company/architects`},
+    {n:"CompanySolution.slnx", t:"file", k:"cmn", d:"The solution file, organised with solution folders so each team can collapse what it doesn't own.", code:
+`<Solution>
+  <Folder Name="/Services/License/">
+    <Project Path="src/Services/License/License.API/License.API.csproj" />
+    <Project Path="src/Services/License/License.BLL/License.BLL.csproj" />
+    <Project Path="src/Services/License/License.DAL/License.DAL.csproj" />
+  </Folder>
+  <Folder Name="/Services/Dashboard/"> ... </Folder>
+  <Folder Name="/Services/Auth/"> ... </Folder>
+  <Folder Name="/Contracts/"> ... </Folder>
+  <Folder Name="/Common/"> ... </Folder>
+  <Folder Name="/Tests/"> ... </Folder>
+</Solution>`},
+    {n:"README.md", t:"file", k:"cmn", d:"How to build, run (docker compose up) and add a new service. The first file a new developer reads."}
+  ]};
+
+  /* ---------- index ---------- */
+  let seq = 0; const byId = new Map(); const parent = new Map();
+  (function index(node, par){
+    node.id = "n"+(seq++); byId.set(node.id,node); if(par) parent.set(node.id,par.id);
+    (node.kids||[]).forEach(k=>index(k,node));
+  })(TREE,null);
+  const pathOf = id => { const p=[]; let c=id; while(c){p.unshift(byId.get(c).n); c=parent.get(c);} return p.join("/"); };
+
+  const expanded = new Set();
+  ["CompanySolution","src","Services"].forEach(nm=>{ for(const n of byId.values()) if(n.n===nm) expanded.add(n.id); });
+  const lic = [...byId.values()].find(n=>n.n==="License" && n.k==="svc"); expanded.add(lic.id);
+  const licApi = [...byId.values()].find(n=>n.n==="License.API"); expanded.add(licApi.id);
+  let current = lic.id;
+  let filterText = "";
+
+  /* ---------- tree render ---------- */
+  const treeEl = document.getElementById("tree");
+  const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+  function matches(node){ return !filterText || node.n.toLowerCase().includes(filterText) || pathOf(node.id).toLowerCase().includes(filterText); }
+  function subtreeMatches(node){ return matches(node) || (node.kids||[]).some(subtreeMatches); }
+
+  function icon(n){ return n.t==="file" ? "▤" : n.t==="proj" ? "◆" : "▣"; }
+  function tagFor(n){
+    if(n.t==="proj"||n.k==="svc"){ const k = n.k==="svc" ? "cmn" : n.k; const lbl = n.k==="svc" ? "Service" : LABEL[n.k]; return `<span class="tag ${L[k]}">${lbl}</span>`; }
+    return "";
+  }
+  function renderNode(n, depth){
+    if(filterText && !subtreeMatches(n)) return "";
+    const hasKids = !!(n.kids&&n.kids.length);
+    const open = hasKids && (expanded.has(n.id) || !!filterText);
+    const hit = filterText && matches(n) ? " hit" : "";
+    let h = `<li role="treeitem" aria-level="${depth}"${hasKids?` aria-expanded="${open}"`:""}>`;
+    h += `<button class="node${hit}" data-id="${n.id}" type="button"${hasKids?` aria-expanded="${open}"`:""} ${n.id===current?'aria-current="true"':""}>`;
+    h += `<span class="chev" aria-hidden="true">${hasKids?"▸":""}</span><span class="ico ${n.k&&L[n.k]?L[n.k]:""}" aria-hidden="true" style="color:var(--c,var(--muted))">${icon(n)}</span><span class="nm">${esc(n.n)}</span>${tagFor(n)}</button>`;
+    if(open) h += `<ul role="group">${n.kids.map(k=>renderNode(k,depth+1)).join("")}</ul>`;
+    return h + "</li>";
+  }
+  function renderTree(){ treeEl.innerHTML = renderNode(TREE,1); }
+
+  /* ---------- detail render ---------- */
+  const detailEl = document.getElementById("detail");
+  function kindLabel(n){
+    if(n.k==="svc") return "Microservice folder";
+    if(n.t==="proj" && n.k==="gw") return "ASP.NET Core gateway (YARP)";
+    if(n.t==="proj") return n.k==="api" ? "ASP.NET Core Web API project" : n.n.includes("Tests") ? "Test project" : "Class library";
+    return n.t==="dir" ? "Folder" : "File";
+  }
+  function renderDetail(){
+    const n = byId.get(current);
+    const tagKey = n.k==="svc" ? "cmn" : (n.k||"cmn");
+    let h = `<div class="crumb">${esc(pathOf(n.id))}</div>`;
+    h += `<div class="dhead"><h2>${esc(n.n)}</h2><span class="tag ${L[tagKey]}">${esc(kindLabel(n))}</span></div>`;
+    h += `<p class="desc">${esc(n.d||"")}</p>`;
+    const meta = [];
+    if(n.owner) meta.push(["Owner", n.owner]);
+    if(n.t==="proj" && (n.k==="api"||n.k==="gw") && !n.n.includes("Tests")) meta.push(["Deployed as", n.k==="gw" ? "Its own container, the only one with a public address" : "Its own container / app service (internal network only)"]);
+    if(n.t==="proj" && (n.k==="bll"||n.k==="dal"||n.k==="cmn"||n.k==="ctr"||n.k==="cache") && !n.n.includes("Tests")) meta.push(["Deployed as","Part of the API that references it (not on its own)"]);
+    if(meta.length) h += `<dl class="kv">${meta.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`;
+    const boxes = [];
+    if(n.contains) boxes.push(`<div class="box"><h3>Contains</h3><ul>${n.contains.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`);
+    if(n.refs && n.refs.length) boxes.push(`<div class="box ok"><h3>May reference</h3><ul>${n.refs.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`);
+    if(n.never && n.never.length) boxes.push(`<div class="box no"><h3>Must not reference</h3><ul>${n.never.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`);
+    if(boxes.length) h += `<div class="cols">${boxes.join("")}</div>`;
+    if(n.kids && n.kids.length) h += `<div><h3 style="margin-bottom:8px">Inside this folder</h3><div class="kids">${n.kids.map(k=>`<button type="button" class="chip" data-go="${k.id}">${esc(k.n)}</button>`).join("")}</div></div>`;
+    if(n.code) h += `<div class="codewrap"><button type="button" class="btn copy" data-copy>Copy</button><pre><code>${esc(n.code)}</code></pre></div>`;
+    detailEl.innerHTML = h;
+  }
+
+  function select(id){
+    current = id; let c = parent.get(id); while(c){ expanded.add(c); c = parent.get(c); }
+    renderTree(); renderDetail();
+  }
+
+  treeEl.addEventListener("click", e=>{
+    const b = e.target.closest(".node"); if(!b) return;
+    const id = b.dataset.id, n = byId.get(id);
+    if(n.kids && n.kids.length && !filterText){ if(current===id && expanded.has(id)) expanded.delete(id); else expanded.add(id); }
+    current = id; renderTree(); renderDetail();
+    const nb = treeEl.querySelector(`[data-id="${id}"]`); if(nb) nb.focus();
+  });
+  treeEl.addEventListener("keydown", e=>{
+    const b = e.target.closest(".node"); if(!b) return;
+    const all = [...treeEl.querySelectorAll(".node")]; const i = all.indexOf(b); const n = byId.get(b.dataset.id);
+    if(e.key==="ArrowDown"&&all[i+1]){all[i+1].focus();e.preventDefault();}
+    else if(e.key==="ArrowUp"&&all[i-1]){all[i-1].focus();e.preventDefault();}
+    else if(e.key==="ArrowRight"&&n.kids&&!expanded.has(n.id)){expanded.add(n.id);renderTree();treeEl.querySelector(`[data-id="${n.id}"]`).focus();e.preventDefault();}
+    else if(e.key==="ArrowLeft"){ if(expanded.has(n.id)){expanded.delete(n.id);renderTree();treeEl.querySelector(`[data-id="${n.id}"]`).focus();} else if(parent.get(n.id)){const p=treeEl.querySelector(`[data-id="${parent.get(n.id)}"]`); if(p)p.focus();} e.preventDefault();}
+  });
+  detailEl.addEventListener("click", e=>{
+    const go = e.target.closest("[data-go]"); if(go){ select(go.dataset.go); return; }
+    const cp = e.target.closest("[data-copy]");
+    if(cp){
+      const txt = byId.get(current).code||"";
+      const done = ()=>{ cp.textContent="Copied"; setTimeout(()=>cp.textContent="Copy",1500); };
+      const fallback = ()=>{ const r=document.createRange(); r.selectNodeContents(detailEl.querySelector("pre")); const s=getSelection(); s.removeAllRanges(); s.addRange(r); cp.textContent="Press Ctrl+C"; };
+      try{ navigator.clipboard.writeText(txt).then(done,fallback); }catch(_){ fallback(); }
+    }
+  });
+  document.getElementById("filter").addEventListener("input", e=>{ filterText = e.target.value.trim().toLowerCase(); renderTree(); });
+  document.getElementById("expandAll").addEventListener("click", ()=>{ for(const n of byId.values()) if(n.kids) expanded.add(n.id); renderTree(); });
+  document.getElementById("collapseAll").addEventListener("click", ()=>{ expanded.clear(); expanded.add(TREE.id); renderTree(); });
+
+  /* ---------- tabs ---------- */
+  const tabs = [...document.querySelectorAll(".tab")];
+  const VIEWS = ["structure","architecture","flow","team"];
+  function show(v){
+    if(!VIEWS.includes(v)) v = "structure";
+    tabs.forEach(t=>{ const on = t.getAttribute("aria-controls")===v; t.setAttribute("aria-selected",on); t.tabIndex = on?0:-1; });
+    VIEWS.forEach(id=>{ document.getElementById(id).hidden = id!==v; });
+  }
+  tabs.forEach(t=>t.addEventListener("click",()=>{ const v=t.getAttribute("aria-controls"); show(v); try{ history.replaceState(null,"","#"+v); }catch(_){ location.hash=v; } }));
+  window.addEventListener("hashchange",()=>show(location.hash.slice(1)));
+
+  show(location.hash.slice(1));
+  renderTree(); renderDetail();
+})();
+</script>
