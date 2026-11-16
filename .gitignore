@@ -54,8 +54,6 @@ src/environments/environment.ts
 src/environments/environment.prod.ts
 src/environments/environment.development.ts
 
-# .NET configuration files
-appsettings.json
 
 #python build folder
 ECL3_PythonUtility.egg-info/
