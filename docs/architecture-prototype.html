@@ -1,18 +1,20 @@
-<title>Microservices Solution Blueprint</title>
+<title>ModelMint Solution Blueprint</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@600;700&display=swap">
 <style>
 /* Layout: blueprint sheet — header, tab strip, then a two-pane explorer (tree | detail) that stacks on phones.
-   Layer colors (API / BLL / DAL / Contracts / Common) are the page's only chroma and repeat everywhere. */
+   Layer colours (Host / Kernel / Api / Application / Domain / Infrastructure / Python / Shared) repeat everywhere. */
 :root{
   --bg:#f5f7f9; --panel:#ffffff; --sunk:#eef1f5; --line:#d8dee6; --fg:#16202b; --muted:#5a6878;
   --accent:#1f5fae; --accent-soft:#e3edf9;
   --api:#1f6fd1; --api-soft:#e2eefc;
-  --bll:#1d8a5b; --bll-soft:#def3e9;
-  --dal:#b26a00; --dal-soft:#fbeedb;
-  --ctr:#7a4fc4; --ctr-soft:#efe8fb;
-  --cmn:#5b6878; --cmn-soft:#e9edf2; --cache:#0f7c86; --cache-soft:#dcf2f3;
+  --app:#1d8a5b; --app-soft:#def3e9;
+  --dom:#0f7c86; --dom-soft:#dcf2f3;
+  --inf:#b26a00; --inf-soft:#fbeedb;
+  --ker:#7a4fc4; --ker-soft:#efe8fb;
+  --py:#c2417a; --py-soft:#fbe6ef;
+  --cmn:#5b6878; --cmn-soft:#e9edf2;
   --bad:#c0392b; --bad-soft:#fbe5e2;
   --code-bg:#0f1720; --code-fg:#dbe4ee;
   --f-head:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
@@ -22,14 +24,16 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0e141b; --panel:#151d26; --sunk:#1b2530; --line:#2a3644; --fg:#e4eaf1; --muted:#93a1b1;
   --accent:#6ea8f0; --accent-soft:#1a2a3e;
-  --api:#6aa8f2; --api-soft:#172a42; --bll:#4cc38a; --bll-soft:#13301f; --dal:#e7a64a; --dal-soft:#35260f;
-  --ctr:#b18cf0; --ctr-soft:#2a1f40; --cmn:#9aa7b6; --cmn-soft:#232d39; --cache:#4fc4cc; --cache-soft:#10302f; --bad:#ef7b6d; --bad-soft:#3a1c18;
+  --api:#6aa8f2; --api-soft:#172a42; --app:#4cc38a; --app-soft:#13301f; --dom:#4fc4cc; --dom-soft:#10302f;
+  --inf:#e7a64a; --inf-soft:#35260f; --ker:#b18cf0; --ker-soft:#2a1f40; --py:#f07fae; --py-soft:#3a1626;
+  --cmn:#9aa7b6; --cmn-soft:#232d39; --bad:#ef7b6d; --bad-soft:#3a1c18;
   --code-bg:#0a0f15; --code-fg:#d6dfe9; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0e141b; --panel:#151d26; --sunk:#1b2530; --line:#2a3644; --fg:#e4eaf1; --muted:#93a1b1;
   --accent:#6ea8f0; --accent-soft:#1a2a3e;
-  --api:#6aa8f2; --api-soft:#172a42; --bll:#4cc38a; --bll-soft:#13301f; --dal:#e7a64a; --dal-soft:#35260f;
-  --ctr:#b18cf0; --ctr-soft:#2a1f40; --cmn:#9aa7b6; --cmn-soft:#232d39; --cache:#4fc4cc; --cache-soft:#10302f; --bad:#ef7b6d; --bad-soft:#3a1c18;
+  --api:#6aa8f2; --api-soft:#172a42; --app:#4cc38a; --app-soft:#13301f; --dom:#4fc4cc; --dom-soft:#10302f;
+  --inf:#e7a64a; --inf-soft:#35260f; --ker:#b18cf0; --ker-soft:#2a1f40; --py:#f07fae; --py-soft:#3a1626;
+  --cmn:#9aa7b6; --cmn-soft:#232d39; --bad:#ef7b6d; --bad-soft:#3a1c18;
   --code-bg:#0a0f15; --code-fg:#d6dfe9; color-scheme:dark}
 
 *{box-sizing:border-box}
@@ -41,14 +45,13 @@ h2{font-size:22px}
 h3{font-size:16px}
 p{margin:0}
 code,.mono{font-family:var(--f-mono);font-size:.9em}
-.lede{color:var(--muted);max-width:70ch;margin-top:8px}
+.lede{color:var(--muted);max-width:75ch;margin-top:8px}
 .legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:16px;font-size:13px;color:var(--muted)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
-.dot{width:10px;height:10px;border-radius:3px;flex:none;background:var(--cmn)}
-.l-api{--c:var(--api);--cs:var(--api-soft)} .l-bll{--c:var(--bll);--cs:var(--bll-soft)} .l-dal{--c:var(--dal);--cs:var(--dal-soft)}
-.l-ctr{--c:var(--ctr);--cs:var(--ctr-soft)} .l-cmn{--c:var(--cmn);--cs:var(--cmn-soft)}
-.l-gw{--c:var(--accent);--cs:var(--accent-soft)} .l-cache{--c:var(--cache);--cs:var(--cache-soft)}
-.dot.l-api,.dot.l-bll,.dot.l-dal,.dot.l-ctr,.dot.l-cmn,.dot.l-gw,.dot.l-cache{background:var(--c)}
+.dot{width:10px;height:10px;border-radius:3px;flex:none;background:var(--c,var(--cmn))}
+.l-api{--c:var(--api);--cs:var(--api-soft)} .l-app{--c:var(--app);--cs:var(--app-soft)} .l-dom{--c:var(--dom);--cs:var(--dom-soft)}
+.l-inf{--c:var(--inf);--cs:var(--inf-soft)} .l-ker{--c:var(--ker);--cs:var(--ker-soft)} .l-py{--c:var(--py);--cs:var(--py-soft)}
+.l-cmn{--c:var(--cmn);--cs:var(--cmn-soft)} .l-web{--c:var(--accent);--cs:var(--accent-soft)} .l-bad{--c:var(--bad);--cs:var(--bad-soft)}
 
 .tabs{display:flex;gap:4px;margin-top:24px;border-bottom:1px solid var(--line);overflow-x:auto}
 .tab{appearance:none;border:0;background:none;color:var(--muted);font:600 14px var(--f-body);padding:10px 14px;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
@@ -57,8 +60,7 @@ code,.mono{font-family:var(--f-mono);font-size:.9em}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 .view{margin-top:20px}
 
-/* explorer */
-.explorer{display:grid;grid-template-columns:minmax(260px,360px) minmax(0,1fr);gap:16px;align-items:start}
+.explorer{display:grid;grid-template-columns:minmax(260px,370px) minmax(0,1fr);gap:16px;align-items:start}
 @media (max-width:820px){.explorer{grid-template-columns:minmax(0,1fr)}}
 .pane{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0}
 .tree-pane{position:sticky;top:12px;max-height:calc(100vh - 24px);display:flex;flex-direction:column}
@@ -74,25 +76,25 @@ code,.mono{font-family:var(--f-mono);font-size:.9em}
 .node[aria-current="true"]{background:var(--accent-soft);color:var(--accent);font-weight:500}
 .chev{width:12px;flex:none;color:var(--muted);transition:transform .15s}
 .node[aria-expanded="true"] .chev{transform:rotate(90deg)}
-.ico{flex:none;font-size:12px;width:14px;text-align:center;color:var(--muted)}
+.ico{flex:none;font-size:12px;width:14px;text-align:center;color:var(--c,var(--muted))}
 .node .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tag{font:600 10px var(--f-body);letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--cs,var(--sunk));color:var(--c,var(--muted));flex:none}
+.tag{font:600 10px var(--f-body);letter-spacing:.06em;text-transform:uppercase;padding:2px 6px;border-radius:4px;background:var(--cs,var(--sunk));color:var(--c,var(--muted));flex:none;white-space:nowrap}
 .node .tag{margin-left:auto}
-.hit .nm{background:var(--dal-soft);border-radius:3px}
+.hit .nm{background:var(--inf-soft);border-radius:3px}
 @media (prefers-reduced-motion:reduce){.chev{transition:none}}
 
 .detail{padding:22px;display:grid;gap:18px}
 .crumb{font-family:var(--f-mono);font-size:12px;color:var(--muted);overflow-wrap:anywhere}
 .dhead{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
 .dhead h2{overflow-wrap:anywhere}
-.desc{max-width:72ch}
+.desc{max-width:75ch}
 .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
 .box{border:1px solid var(--line);border-radius:8px;padding:12px 14px;min-width:0}
 .box h3{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;font-family:var(--f-body)}
 .box ul{margin:0;padding-left:18px;display:grid;gap:4px}
-.box.ok{border-color:color-mix(in srgb,var(--bll) 45%,var(--line))}
+.box.ok{border-color:color-mix(in srgb,var(--app) 45%,var(--line))}
 .box.no{border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
-.box.ok h3{color:var(--bll)} .box.no h3{color:var(--bad)}
+.box.ok h3{color:var(--app)} .box.no h3{color:var(--bad)}
 .kids{display:flex;flex-wrap:wrap;gap:6px}
 .chip{appearance:none;border:1px solid var(--line);background:var(--sunk);color:var(--fg);font:13px var(--f-mono);padding:4px 8px;border-radius:5px;cursor:pointer}
 .chip:hover{border-color:var(--accent);color:var(--accent)}
@@ -102,27 +104,25 @@ pre{margin:0;background:var(--code-bg);color:var(--code-fg);font:12.5px/1.6 var(
 .kv{display:grid;grid-template-columns:max-content 1fr;gap:6px 14px;font-size:14px}
 .kv dt{color:var(--muted)} .kv dd{margin:0;overflow-wrap:anywhere}
 
-/* other views */
 .card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:20px;min-width:0}
 .stack{display:grid;gap:16px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
 .diagram{overflow-x:auto}
 .diagram svg{display:block;min-width:820px;width:100%;height:auto}
 svg text{font-family:var(--f-body)}
 .s-box{stroke-width:1.5}
-.s-api{fill:var(--api-soft);stroke:var(--api)} .s-bll{fill:var(--bll-soft);stroke:var(--bll)} .s-dal{fill:var(--dal-soft);stroke:var(--dal)}
-.s-ctr{fill:var(--ctr-soft);stroke:var(--ctr)} .s-cmn{fill:var(--cmn-soft);stroke:var(--cmn)} .s-cli{fill:var(--sunk);stroke:var(--muted)}
-.s-svc{fill:none;stroke:var(--line);stroke-dasharray:5 4}
-.s-gw{fill:var(--accent-soft);stroke:var(--accent)} .s-tel{fill:var(--sunk);stroke:var(--muted);stroke-dasharray:4 3} .s-cache{fill:var(--cache-soft);stroke:var(--cache)}
-.a-cache{stroke:var(--cache);stroke-width:2;fill:none;stroke-dasharray:3 3} .ah-cache{fill:var(--cache)}
-.t-cache{fill:var(--cache);font-size:12px;font-weight:600} .t-gw{fill:var(--accent);font-size:12px;font-weight:600}
+.s-web{fill:var(--accent-soft);stroke:var(--accent)} .s-api{fill:var(--api-soft);stroke:var(--api)} .s-ker{fill:var(--ker-soft);stroke:var(--ker)}
+.s-app{fill:var(--app-soft);stroke:var(--app)} .s-inf{fill:var(--inf-soft);stroke:var(--inf)} .s-py{fill:var(--py-soft);stroke:var(--py)}
+.s-cmn{fill:var(--cmn-soft);stroke:var(--cmn)} .s-ext{fill:var(--sunk);stroke:var(--muted);stroke-dasharray:5 4}
+.s-frame{fill:none;stroke:var(--line);stroke-dasharray:5 4}
 .t-main{fill:var(--fg);font-size:14px;font-weight:600} .t-sub{fill:var(--muted);font-size:12px}
-.t-api{fill:var(--api);font-size:12px;font-weight:600} .t-ctr{fill:var(--ctr);font-size:12px;font-weight:600}
-.t-svc{fill:var(--muted);font-size:12px;font-weight:600;letter-spacing:.08em}
-.a-dep{stroke:var(--muted);stroke-width:1.5;fill:none}
-.a-grpc{stroke:var(--api);stroke-width:2;fill:none;stroke-dasharray:6 4}
-.a-rest{stroke:var(--fg);stroke-width:1.5;fill:none}
-.ah-dep{fill:var(--muted)} .ah-grpc{fill:var(--api)} .ah-rest{fill:var(--fg)}
-.steps{list-style:none;margin:0;padding:0;display:grid;gap:0;counter-reset:s}
+.t-lab{fill:var(--fg);font-size:11.5px;font-weight:600} .t-py{fill:var(--py);font-size:12px;font-weight:600} .t-ker{fill:var(--ker);font-size:12px;font-weight:600}
+.a-line{stroke:var(--muted);stroke-width:1.5;fill:none} .a-job{stroke:var(--py);stroke-width:2;fill:none;stroke-dasharray:6 4}
+.a-tx{stroke:var(--ker);stroke-width:2;fill:none}
+.ah-line{fill:var(--muted)} .ah-job{fill:var(--py)} .ah-tx{fill:var(--ker)}
+.a-grpc{stroke:var(--api);stroke-width:2;fill:none;stroke-dasharray:6 4} .ah-grpc{fill:var(--api)} .t-grpc{fill:var(--api);font-size:12px;font-weight:600}
+
+.steps{list-style:none;margin:0;padding:0;display:grid;counter-reset:s}
 .steps li{display:grid;grid-template-columns:36px minmax(0,1fr);gap:14px;padding:14px 0;border-top:1px solid var(--line)}
 .steps li:first-child{border-top:0}
 .steps li::before{counter-increment:s;content:counter(s);width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:600 13px var(--f-mono);background:var(--cs,var(--sunk));color:var(--c,var(--fg))}
@@ -133,33 +133,39 @@ svg text{font-family:var(--f-body)}
 table{border-collapse:collapse;width:100%;font-size:14px}
 th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
-td code{white-space:nowrap}
-.yes{color:var(--bll);font-weight:600} .noo{color:var(--bad);font-weight:600} .dim{color:var(--muted)}
-.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.yes{color:var(--app);font-weight:600} .noo{color:var(--bad);font-weight:600} .dim{color:var(--muted)}
 .rules{margin:0;padding-left:20px;display:grid;gap:8px}
 .note{font-size:13px;color:var(--muted)}
+.issues{display:grid;gap:12px}
+.issue{border:1px solid var(--line);border-left:4px solid var(--c,var(--line));border-radius:8px;padding:14px 16px;display:grid;gap:6px;background:var(--panel)}
+.issue .top{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.issue h3{font-size:16px}
+.issue .src{font-size:13px;color:var(--muted)}
+.issue .rec b{color:var(--fg)}
 </style>
 
 <div class="wrap">
   <header>
-    <h1>Microservices Solution Blueprint</h1>
-    <p class="lede">Proposed structure for the License, Dashboard and Auth services. Each service has its own API, BLL and DAL projects and owns one database schema. Services talk to each other over gRPC using shared <code>.proto</code> contracts. Every browser request first passes an API Gateway that checks the token and the user's permissions, using a shared Redis cache. Users sign in with company Active Directory (Microsoft Entra ID), and every component sends telemetry through OpenTelemetry. Click any folder or file in the tree to see what goes there.</p>
-    <div class="legend" aria-label="Layer colors">
-      <span><i class="dot l-gw"></i>Gateway (auth check, routing)</span>
-      <span><i class="dot l-cache"></i>Cache (Redis)</span>
-      <span><i class="dot l-api"></i>API (Web API host)</span>
-      <span><i class="dot l-bll"></i>BLL (business logic)</span>
-      <span><i class="dot l-dal"></i>DAL (data access)</span>
-      <span><i class="dot l-ctr"></i>Contracts (.proto)</span>
-      <span><i class="dot l-cmn"></i>Common / repo files</span>
+    <h1>ModelMint Solution Blueprint</h1>
+    <p class="lede">Folder structure and build rules for ModelMint v0.3: one .NET 10 Governance Plane (Host, Kernel, 13 modules, Worker) on one SQL Server 2022 database with a schema per module, a single Python 3.12 Analytics service with no database access, and an Angular 22 client behind a BFF. Every call between separate programs (Host, Worker, Python nodes and client systems) is gRPC with mTLS, in both directions; modules inside the Host call each other in-process. Installed natively on the bank's servers (IIS and Windows Services), no containers. Click any folder or file in the tree to see what goes there.</p>
+    <div class="legend" aria-label="Layer colours">
+      <span><i class="dot l-web"></i>Angular client</span>
+      <span><i class="dot l-api"></i>Host / Api (L2)</span>
+      <span><i class="dot l-ker"></i>Kernel (L3, L5)</span>
+      <span><i class="dot l-app"></i>Application</span>
+      <span><i class="dot l-dom"></i>Domain</span>
+      <span><i class="dot l-inf"></i>Infrastructure / data (L8)</span>
+      <span><i class="dot l-py"></i>Python Analytics Plane (L6)</span>
+      <span><i class="dot l-cmn"></i>Shared, tooling, repo files</span>
     </div>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Views">
     <button class="tab" role="tab" id="tab-structure" aria-controls="structure" aria-selected="true">Folder structure</button>
     <button class="tab" role="tab" id="tab-architecture" aria-controls="architecture" aria-selected="false">Architecture</button>
-    <button class="tab" role="tab" id="tab-flow" aria-controls="flow" aria-selected="false">Request flow</button>
-    <button class="tab" role="tab" id="tab-team" aria-controls="team" aria-selected="false">Rules &amp; team</button>
+    <button class="tab" role="tab" id="tab-flow" aria-controls="flow" aria-selected="false">Request &amp; job flow</button>
+    <button class="tab" role="tab" id="tab-team" aria-controls="team" aria-selected="false">Rules, team &amp; deployment</button>
+    <button class="tab" role="tab" id="tab-review" aria-controls="review" aria-selected="false">Decisions to make</button>
   </nav>
 
   <!-- STRUCTURE -->
@@ -181,169 +187,152 @@ td code{white-space:nowrap}
   <section class="view" id="architecture" role="tabpanel" aria-labelledby="tab-architecture" hidden>
     <div class="stack">
       <div class="card diagram">
-        <svg viewBox="0 0 960 776" role="img" aria-label="Users sign in with Microsoft Entra ID. Browser requests pass through an API gateway that validates the AD token and checks permissions using a Redis cache, then routes to three services. Each service has API, BLL and DAL layers and its own schema. Every service can call every other service over gRPC in both directions.">
+        <svg viewBox="0 0 960 640" role="img" aria-label="Angular client calls ModelMint.Host through a BFF. The Host runs the Kernel and 13 modules, which write domain changes and ledger entries to SQL Server in one transaction. The Worker Windows Service handles outbox, timers, ingestion, projections and digests. The Python Analytics service leases jobs from the Host's Job API and reads and writes the Artefact Store, never the database.">
           <defs>
-            <marker id="m-dep" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ah-dep"/></marker>
+            <marker id="m-line" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah-line"/></marker>
+            <marker id="m-job" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah-job"/></marker>
+            <marker id="m-tx" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ah-tx"/></marker>
             <marker id="m-grpc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" class="ah-grpc"/></marker>
-            <marker id="m-rest" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ah-rest"/></marker>
-            <marker id="m-cache" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="ah-cache"/></marker>
           </defs>
-          <!-- client -->
-          <rect class="s-box s-cli" x="350" y="16" width="260" height="52" rx="8"/>
-          <text class="t-main" x="480" y="40" text-anchor="middle">Web UI / Partner systems</text>
-          <text class="t-sub" x="480" y="58" text-anchor="middle">HTTPS · REST/JSON · Bearer token</text>
-          <path class="a-rest" d="M480 68 V108" marker-end="url(#m-rest)"/>
 
-          <!-- identity -->
-          <rect class="s-box s-gw" x="40" y="16" width="230" height="52" rx="8"/>
-          <text class="t-main" x="155" y="40" text-anchor="middle">Microsoft Entra ID (AD)</text>
-          <text class="t-sub" x="155" y="58" text-anchor="middle">sign-in · issues access tokens</text>
-          <path class="a-rest" d="M350 42 H274" marker-end="url(#m-rest)"/>
-          <text class="t-sub" x="312" y="34" text-anchor="middle">sign in</text>
+          <!-- top row -->
+          <rect class="s-box s-web" x="40" y="20" width="220" height="56" rx="8"/>
+          <text class="t-main" x="150" y="44" text-anchor="middle">Angular 22 client</text>
+          <text class="t-sub" x="150" y="62" text-anchor="middle">5 workspaces · Control Tower · forms</text>
 
-          <!-- gateway -->
-          <rect class="s-box s-gw" x="250" y="110" width="460" height="60" rx="8"/>
-          <text class="t-main" x="480" y="134" text-anchor="middle">API Gateway (YARP)</text>
-          <text class="t-sub" x="480" y="154" text-anchor="middle">validate AD token · blocked? · permission check · rate limit · route</text>
+          <rect class="s-box s-ext" x="330" y="20" width="300" height="56" rx="8"/>
+          <text class="t-main" x="480" y="44" text-anchor="middle">IAL Licence Authority (offline)</text>
+          <text class="t-sub" x="480" y="62" text-anchor="middle">licence certificate · signed policy &amp; test packs</text>
 
-          <!-- redis -->
-          <path class="s-box s-cache" d="M750 26 V70 A70 10 0 0 0 890 70 V26"/>
-          <ellipse class="s-box s-cache" cx="820" cy="26" rx="70" ry="10"/>
-          <text class="t-main" x="820" y="52" text-anchor="middle">Redis cache</text>
-          <text class="t-sub" x="820" y="68" text-anchor="middle">permissions · blocked users</text>
-          <path class="a-cache" d="M710 130 H820 V84" marker-end="url(#m-cache)"/>
-          <text class="t-cache" x="765" y="124" text-anchor="middle">lookup</text>
+          <rect class="s-box s-ext" x="700" y="20" width="220" height="56" rx="8"/>
+          <text class="t-main" x="810" y="44" text-anchor="middle">Bank identity</text>
+          <text class="t-sub" x="810" y="62" text-anchor="middle">OIDC · AD / LDAP · Keycloak (opt.)</text>
 
-          <!-- gateway routes -->
-          <path class="a-rest" d="M250 140 H236 V226" marker-end="url(#m-rest)"/>
-          <path class="a-rest" d="M560 170 V226" marker-end="url(#m-rest)"/>
-          <path class="a-rest" d="M710 156 H870 V226" marker-end="url(#m-rest)"/>
-          <text class="t-sub" x="568" y="204">routes by path</text>
+          <!-- host -->
+          <rect class="s-box s-api" x="300" y="110" width="360" height="70" rx="8"/>
+          <text class="t-main" x="480" y="134" text-anchor="middle">ModelMint.Host (IIS)</text>
+          <text class="t-sub" x="480" y="152" text-anchor="middle">BFF (OIDC, cookie, CSRF) · REST /api/v1 · SignalR</text>
+          <text class="t-sub" x="480" y="168" text-anchor="middle">filters: licence · entitlement · permission · gRPC :9443</text>
 
-          <!-- service frames -->
-          <rect class="s-svc" x="30" y="196" width="260" height="360" rx="10"/>
-          <rect class="s-svc" x="350" y="196" width="260" height="360" rx="10"/>
-          <rect class="s-svc" x="670" y="196" width="260" height="360" rx="10"/>
-          <text class="t-svc" x="46" y="216">LICENSE SERVICE</text>
-          <text class="t-svc" x="366" y="216">DASHBOARD SERVICE</text>
-          <text class="t-svc" x="686" y="216">AUTH SERVICE</text>
+          <path class="a-line" d="M120 76 V128 H296" marker-end="url(#m-line)"/>
+          <text class="t-lab" x="128" y="120">HTTPS + session cookie</text>
+          <path class="a-line" d="M480 76 V106" marker-end="url(#m-line)"/>
+          <text class="t-sub" x="488" y="96">files</text>
+          <path class="a-line" d="M810 76 V145 H664" marker-end="url(#m-line)"/>
+          <text class="t-lab" x="818" y="110">sign-in</text>
 
-          <g>
-            <rect class="s-box s-api" x="50" y="228" width="220" height="54" rx="7"/><text class="t-main" x="160" y="252" text-anchor="middle">License.API</text><text class="t-sub" x="160" y="270" text-anchor="middle">REST + gRPC server</text>
-            <rect class="s-box s-bll" x="50" y="312" width="220" height="54" rx="7"/><text class="t-main" x="160" y="336" text-anchor="middle">License.BLL</text><text class="t-sub" x="160" y="354" text-anchor="middle">rules + gRPC clients</text>
-            <rect class="s-box s-dal" x="50" y="396" width="220" height="54" rx="7"/><text class="t-main" x="160" y="420" text-anchor="middle">License.DAL</text><text class="t-sub" x="160" y="438" text-anchor="middle">LicenseDbContext, repos</text>
-            <path class="a-dep" d="M160 282 V310" marker-end="url(#m-dep)"/><path class="a-dep" d="M160 366 V394" marker-end="url(#m-dep)"/><path class="a-dep" d="M160 450 V480" marker-end="url(#m-dep)"/>
-            <path class="s-box s-cmn" d="M90 490 V526 A70 9 0 0 0 230 526 V490"/><ellipse class="s-box s-cmn" cx="160" cy="490" rx="70" ry="9"/>
-            <text class="t-sub" x="160" y="516" text-anchor="middle">schema: license</text>
-          </g>
-          <g>
-            <rect class="s-box s-api" x="370" y="228" width="220" height="54" rx="7"/><text class="t-main" x="480" y="252" text-anchor="middle">Dashboard.API</text><text class="t-sub" x="480" y="270" text-anchor="middle">REST + gRPC server</text>
-            <rect class="s-box s-bll" x="370" y="312" width="220" height="54" rx="7"/><text class="t-main" x="480" y="336" text-anchor="middle">Dashboard.BLL</text><text class="t-sub" x="480" y="354" text-anchor="middle">aggregates + gRPC clients</text>
-            <rect class="s-box s-dal" x="370" y="396" width="220" height="54" rx="7"/><text class="t-main" x="480" y="420" text-anchor="middle">Dashboard.DAL</text><text class="t-sub" x="480" y="438" text-anchor="middle">widgets, user prefs</text>
-            <path class="a-dep" d="M480 282 V310" marker-end="url(#m-dep)"/><path class="a-dep" d="M480 366 V394" marker-end="url(#m-dep)"/><path class="a-dep" d="M480 450 V480" marker-end="url(#m-dep)"/>
-            <path class="s-box s-cmn" d="M410 490 V526 A70 9 0 0 0 550 526 V490"/><ellipse class="s-box s-cmn" cx="480" cy="490" rx="70" ry="9"/>
-            <text class="t-sub" x="480" y="516" text-anchor="middle">schema: dashboard</text>
-          </g>
-          <g>
-            <rect class="s-box s-api" x="690" y="228" width="220" height="54" rx="7"/><text class="t-main" x="800" y="252" text-anchor="middle">Auth.API</text><text class="t-sub" x="800" y="270" text-anchor="middle">login, tokens, gRPC server</text>
-            <rect class="s-box s-bll" x="690" y="312" width="220" height="54" rx="7"/><text class="t-main" x="800" y="336" text-anchor="middle">Auth.BLL</text><text class="t-sub" x="800" y="354" text-anchor="middle">users, roles + gRPC clients</text>
-            <rect class="s-box s-dal" x="690" y="396" width="220" height="54" rx="7"/><text class="t-main" x="800" y="420" text-anchor="middle">Auth.DAL</text><text class="t-sub" x="800" y="438" text-anchor="middle">AuthDbContext, repos</text>
-            <path class="a-dep" d="M800 282 V310" marker-end="url(#m-dep)"/><path class="a-dep" d="M800 366 V394" marker-end="url(#m-dep)"/><path class="a-dep" d="M800 450 V480" marker-end="url(#m-dep)"/>
-            <path class="s-box s-cmn" d="M730 490 V526 A70 9 0 0 0 870 526 V490"/><ellipse class="s-box s-cmn" cx="800" cy="490" rx="70" ry="9"/>
-            <text class="t-sub" x="800" y="516" text-anchor="middle">schema: auth</text>
-          </g>
+          <!-- kernel + modules -->
+          <rect class="s-frame" x="300" y="210" width="360" height="132" rx="10"/>
+          <rect class="s-box s-ker" x="314" y="222" width="332" height="44" rx="7"/>
+          <text class="t-main" x="480" y="240" text-anchor="middle">ModelMint.Kernel</text>
+          <text class="t-sub" x="480" y="257" text-anchor="middle">workflow · guards · forms · SoD · policy · tasks · LedgerWriter · licence</text>
+          <rect class="s-box s-app" x="314" y="276" width="332" height="56" rx="7"/>
+          <text class="t-main" x="480" y="294" text-anchor="middle">13 modules (Domain | Application | Infrastructure | Api)</text>
+          <text class="t-sub" x="480" y="310" text-anchor="middle">Intake · Registry · Tiering · Development · Testing · Validation</text>
+          <text class="t-sub" x="480" y="325" text-anchor="middle">Approval · Monitoring · Issues · Artefacts · Reporting · Integration · Admin</text>
+          <path class="a-line" d="M480 180 V206" marker-end="url(#m-line)"/>
 
-          <!-- two-way gRPC between every pair of services -->
-          <path class="a-grpc" d="M274 255 H366" marker-start="url(#m-grpc)" marker-end="url(#m-grpc)"/>
-          <path class="a-grpc" d="M594 255 H686" marker-start="url(#m-grpc)" marker-end="url(#m-grpc)"/>
-          <text class="t-api" x="320" y="246" text-anchor="middle">gRPC</text>
-          <text class="t-api" x="640" y="246" text-anchor="middle">gRPC</text>
-          <path class="a-grpc" d="M250 558 V580 H710 V558" marker-start="url(#m-grpc)" marker-end="url(#m-grpc)"/>
-          <text class="t-api" x="480" y="598" text-anchor="middle">gRPC  License ⇄ Auth</text>
+          <!-- client systems -->
+          <rect class="s-box s-ext" x="700" y="216" width="220" height="70" rx="8"/>
+          <text class="t-main" x="810" y="238" text-anchor="middle">Client systems</text>
+          <text class="t-sub" x="810" y="255" text-anchor="middle">Rating · NPA · ECL · Scoring · DW</text>
+          <text class="t-sub" x="810" y="272" text-anchor="middle">gRPC Gate API · REST · DB · files · MQ</text>
+          <path class="a-grpc" d="M698 250 H664" marker-start="url(#m-grpc)" marker-end="url(#m-grpc)"/>
 
-          <!-- contracts + common -->
-          <rect class="s-box s-ctr" x="30" y="614" width="900" height="44" rx="8"/>
-          <text class="t-main" x="480" y="634" text-anchor="middle">Contracts</text>
-          <text class="t-ctr" x="480" y="650" text-anchor="middle">license.proto · auth.proto · dashboard.proto (each service is a server of its own, a client of the others)</text>
-          <rect class="s-box s-cmn" x="30" y="668" width="900" height="44" rx="8"/>
-          <text class="t-main" x="480" y="688" text-anchor="middle">Common</text>
-          <text class="t-sub" x="480" y="704" text-anchor="middle">Common.Core · Common.DAL · Common.Grpc · Common.Auth · Common.Caching · Common.Telemetry</text>
-          <rect class="s-box s-tel" x="30" y="722" width="900" height="44" rx="8"/>
-          <text class="t-main" x="480" y="742" text-anchor="middle">Telemetry: OpenTelemetry → Collector → Application Insights / Grafana</text>
-          <text class="t-sub" x="480" y="758" text-anchor="middle">gateway and every service send traces, metrics and logs; one trace follows a request across all services</text>
+          <!-- sql -->
+          <rect class="s-box s-inf" x="300" y="380" width="360" height="76" rx="8"/>
+          <text class="t-main" x="480" y="402" text-anchor="middle">SQL Server 2022 (one database)</text>
+          <text class="t-sub" x="480" y="420" text-anchor="middle">core sec lic pol wf frm ldg reg itk tie dev tst</text>
+          <text class="t-sub" x="480" y="436" text-anchor="middle">val apr mon iss bcm art aud ntf rpt int ana</text>
+          <text class="t-sub" x="480" y="450" text-anchor="middle">append-only ledger · TDE · row-level security</text>
+          <path class="a-tx" d="M480 342 V376" marker-end="url(#m-tx)"/>
+          <text class="t-ker" x="490" y="364">one transaction: change + ledger + outbox</text>
+
+          <!-- worker -->
+          <rect class="s-box s-api" x="700" y="370" width="220" height="96" rx="8"/>
+          <text class="t-main" x="810" y="392" text-anchor="middle">ModelMint.Worker</text>
+          <text class="t-sub" x="810" y="409" text-anchor="middle">Windows Service</text>
+          <text class="t-sub" x="810" y="425" text-anchor="middle">outbox · Quartz timers · ingestion</text>
+          <text class="t-sub" x="810" y="441" text-anchor="middle">projections · global chain · digests</text>
+          <text class="t-sub" x="810" y="457" text-anchor="middle">SIEM forwarder · business checks</text>
+          <path class="a-line" d="M698 418 H664" marker-start="url(#m-line)" marker-end="url(#m-line)"/>
+          <path class="a-grpc" d="M922 418 H942 V162 H664" marker-start="url(#m-grpc)" marker-end="url(#m-grpc)"/>
+          <text class="t-grpc" x="900" y="156" text-anchor="middle">gRPC</text>
+
+          <!-- python -->
+          <rect class="s-box s-py" x="40" y="370" width="220" height="96" rx="8"/>
+          <text class="t-main" x="150" y="392" text-anchor="middle">Python Analytics service</text>
+          <text class="t-sub" x="150" y="409" text-anchor="middle">1 service · n worker nodes</text>
+          <text class="t-sub" x="150" y="425" text-anchor="middle">mm-engine · mm-metrics · mm-ecl …</text>
+          <text class="t-py" x="150" y="445" text-anchor="middle">no database access</text>
+          <path class="a-job" d="M200 368 V160 H296" marker-start="url(#m-job)" marker-end="url(#m-job)"/>
+          <text class="t-py" x="192" y="244" text-anchor="end">gRPC both ways</text>
+          <text class="t-sub" x="192" y="260" text-anchor="end">lease · heartbeat · result</text>
+          <text class="t-sub" x="192" y="276" text-anchor="end">cancel · health</text>
+          <text class="t-sub" x="192" y="292" text-anchor="end">mTLS + signed tokens</text>
+
+          <!-- artefact store -->
+          <rect class="s-box s-inf" x="300" y="490" width="360" height="52" rx="8"/>
+          <text class="t-main" x="480" y="512" text-anchor="middle">Artefact Store</text>
+          <text class="t-sub" x="480" y="530" text-anchor="middle">file share / object storage · hash-checked inputs · results</text>
+          <path class="a-line" d="M262 440 H280 V516 H296" marker-start="url(#m-line)" marker-end="url(#m-line)"/>
+          <text class="t-sub" x="30" y="560">dashed = gRPC with mTLS · solid = in-process, SQL or file share</text>
+
+          <!-- observability -->
+          <rect class="s-box s-cmn" x="30" y="570" width="900" height="54" rx="8"/>
+          <text class="t-main" x="480" y="592" text-anchor="middle">Operations: OpenTelemetry (Host, Worker, Python) → collector on the bank's servers → bank's monitoring tools</text>
+          <text class="t-sub" x="480" y="610" text-anchor="middle">Audit events (aud) → SIEM forwarder, kept separate from telemetry · installer, upgrade and patching per profile S / M / L</text>
         </svg>
       </div>
       <div class="grid2">
         <div class="card stack">
-          <h2>Reading the diagram</h2>
-          <ul class="rules">
-            <li>Every browser or partner request enters through the <b>API Gateway</b>. It checks the token and permissions (using Redis) before anything reaches a service. Services are not reachable from outside.</li>
-            <li>Solid grey arrows are project references inside one service: <b>API → BLL → DAL → schema</b>.</li>
-            <li>Dashed blue arrows are two-way gRPC links. Every service hosts a gRPC server in its <code>.API</code> and holds gRPC clients for the other services in its <code>.BLL</code>, so Dashboard can call Auth and Auth can call Dashboard, and the same for every pair.</li>
-            <li>Each service reads and writes only its own schema. Dashboard never queries the <code>license</code> or <code>auth</code> tables.</li>
-            <li>Contracts and Common are class libraries that every service references. They are never deployed by themselves.</li>
-          </ul>
+          <h2>Your layers mapped to folders</h2>
+          <div class="tbl"><table>
+            <thead><tr><th>Layer (v0.3)</th><th>Where it lives</th></tr></thead>
+            <tbody>
+              <tr><td>L1 Experience</td><td><code>src/Web/modelmint-web</code> (Angular 22)</td></tr>
+              <tr><td>L2 Edge &amp; API</td><td><code>ModelMint.Host</code> + each module's <code>.Api</code> + <code>Host/Grpc</code> services</td></tr>
+              <tr><td>L3 Workflow &amp; Rules</td><td><code>ModelMint.Kernel</code> (Workflow, Guards, Policy, SoD, Timers)</td></tr>
+              <tr><td>L4 Domain modules</td><td><code>src/Modules/*</code>, four projects each</td></tr>
+              <tr><td>L5 Ledger &amp; Registry Core</td><td><code>Kernel/Ledger</code> + <code>Modules/Registry</code> + Worker chain jobs</td></tr>
+              <tr><td>L6 Analytics Plane</td><td><code>analytics/</code> (Python), over gRPC via <code>contracts/protos</code></td></tr>
+              <tr><td>L7 Integration</td><td><code>Modules/Integration</code> + Worker ingestion</td></tr>
+              <tr><td>L8 Data</td><td>each <code>*.Infrastructure</code>, <code>db/</code>, Artefact Store</td></tr>
+              <tr><td>L9 Security, Licensing, Ops</td><td>Host (auth), Kernel (licence, SoD), <code>Shared.Infrastructure</code> (crypto, keys, telemetry), <code>installer/</code></td></tr>
+            </tbody>
+          </table></div>
         </div>
         <div class="card stack">
-          <h2>How it maps to today's code</h2>
+          <h2>What changed from the earlier draft</h2>
           <div class="tbl"><table>
-            <thead><tr><th>Today</th><th>Becomes</th></tr></thead>
+            <thead><tr><th>Earlier draft</th><th>ModelMint</th></tr></thead>
             <tbody>
-              <tr><td><code>GRPC</code> (client)</td><td><code>Dashboard.API</code> + <code>Dashboard.BLL</code></td></tr>
-              <tr><td><code>GRPC_B2B</code> (gRPC server)</td><td><code>License.API</code> + <code>License.BLL</code></td></tr>
-              <tr><td><code>Protos/weather_b2b.proto</code></td><td><code>Contracts/License.Contracts/Protos/license/v1/license.proto</code></td></tr>
-              <tr><td><code>ApiKeyInterceptor</code></td><td><code>Common/Common.Grpc/Interceptors</code></td></tr>
+              <tr><td>Separate services per schema</td><td>Modules inside one Host, one database</td></tr>
+              <tr><td>BLL / DAL</td><td>Domain + Application / Infrastructure</td></tr>
+              <tr><td>YARP gateway, bearer tokens in the browser</td><td>BFF in the Host, cookie + CSRF, endpoint filters</td></tr>
+              <tr><td>Two-way gRPC between microservices</td><td>Two-way gRPC between programs (Host ⇄ Python, Host ⇄ Worker, client systems → Host); modules stay in-process</td></tr>
+              <tr><td>Entra ID only</td><td>Any OIDC provider, plus LDAP, break-glass, optional Keycloak</td></tr>
+              <tr><td>Redis permission cache</td><td>In-process cache; a shared cache only for profiles M and L</td></tr>
+              <tr><td>Azure Key Vault</td><td>Key adapters (Windows certificate store, DPAPI, HSM)</td></tr>
+              <tr><td>Docker / Kubernetes</td><td>IIS + Windows Services, offline signed installer</td></tr>
+              <tr><td>"License" service with license keys</td><td>Product licence: Ed25519 certificate, verifier, entitlements</td></tr>
             </tbody>
           </table></div>
         </div>
       </div>
-      <div class="grid2">
-        <div class="card stack">
-          <h2>Shared cache entries</h2>
-          <div class="tbl"><table>
-            <thead><tr><th>Entry</th><th>Holds</th><th>Lifetime</th><th>Cleared when</th></tr></thead>
-            <tbody>
-              <tr><td><code>perm:{oid}</code></td><td>The user's permission list, loaded from Auth over gRPC (oid = AD object id)</td><td>10 min in Redis, 1 min in each instance's memory</td><td>Auth changes the user's roles (removes tag <code>user:{oid}</code>)</td></tr>
-              <tr><td><code>blocked:{oid}</code></td><td>Marks a user disabled in this app while their AD token is still valid</td><td>2 hours (longer than an AD access token lives)</td><td>Expires by itself, or Auth removes it when the user is re-enabled</td></tr>
-              <tr><td>Signing keys</td><td>Entra ID's public keys used to verify AD tokens</td><td>In memory, refreshed about once a day</td><td>Microsoft rotates them (handled automatically)</td></tr>
-            </tbody>
-          </table></div>
-          <p class="note">Most requests need no network call for the auth check: the token is verified locally, permissions come from memory, and the blocked-user check is one Redis lookup. After a role change, other gateway instances may use the old permissions for up to one minute.</p>
-        </div>
-        <div class="card stack">
-          <h2>Rules for two-way gRPC</h2>
-          <ul class="rules">
-            <li><b>No compile-time cycles.</b> Dashboard.BLL references <code>Auth.Contracts</code> and Auth.BLL references <code>Dashboard.Contracts</code>. Services never reference each other's projects, so two-way calls never create a project cycle.</li>
-            <li><b>No call loops in one request.</b> If Dashboard calls Auth to answer a request, Auth must not call Dashboard back for that same request. Each call should end in a database read, not another hop back.</li>
-            <li><b>Deadlines travel with the call.</b> <code>EnableCallContextPropagation</code> in Common.Grpc passes the original deadline and cancellation down the chain.</li>
-            <li><b>Ask with gRPC, announce with events.</b> Use gRPC when the caller needs an answer now ("get permissions"). For "something happened" news ("user deleted, remove their widgets"), a message broker such as RabbitMQ or Azure Service Bus is a good later step, so the sender doesn't wait or fail if the receiver is down.</li>
-            <li><b>Service-to-service calls are authenticated too.</b> Internal gRPC calls carry either the user's AD token (when acting for the user) or the calling service's own AD token (managed identity or client credentials). Common.Grpc adds the token and the receiving service validates it.</li>
-          </ul>
-        </div>
-      </div>
-      <div class="grid2">
-        <div class="card stack">
-          <h2>Sign-in with Active Directory</h2>
-          <ul class="rules">
-            <li><b>Microsoft Entra ID (Azure AD) handles login.</b> Users sign in with their company account, with single sign-on and MFA. Our services never handle passwords or issue tokens.</li>
-            <li><b>App registrations:</b> one for the web app (signs users in with MSAL) and one for the platform API (<code>api://company-platform</code>). The gateway and every service validate tokens for that API with Microsoft.Identity.Web.</li>
-            <li><b>AD groups → app roles → permissions.</b> AD groups (for example <code>SG-License-Admins</code>) map to app roles. The Auth service maps roles to fine-grained permissions such as <code>license.read</code>, stores them in the <code>auth</code> schema and caches them in Redis.</li>
-            <li><b>Users are keyed by their AD object id</b> (<code>oid</code> claim) in every schema and cache entry, not by email, which can change.</li>
-            <li><b>Service-to-service calls</b> use each service's own AD identity (managed identity or client credentials), or forward the user's token when acting for the user.</li>
-            <li><b>On-premises AD only?</b> The same design works with AD FS issuing the tokens; only the <code>AzureAd</code> settings change.</li>
-          </ul>
-        </div>
-        <div class="card stack">
-          <h2>Telemetry</h2>
-          <ul class="rules">
-            <li><b>One library.</b> The gateway and every service call <code>AddCommonTelemetry("service-name")</code> from Common.Telemetry. Nobody sets up telemetry by hand.</li>
-            <li><b>Traces</b> follow one request through Gateway → Dashboard → License → Auth, including SQL queries and Redis lookups. Trace context passes automatically over HTTP and gRPC.</li>
-            <li><b>Metrics:</b> request rate, errors and duration per endpoint and per gRPC method, cache hit rate, 401/403 counts, and .NET runtime health.</li>
-            <li><b>Logs:</b> structured <code>ILogger</code> logs carry the trace id and the user's AD object id, so you can jump from a log line to the full trace.</li>
-            <li><b>Collector in the middle.</b> Services send OTLP to an OpenTelemetry Collector, which forwards to Application Insights (or Grafana, Jaeger, Seq). Switching tools changes only <code>deploy/otel-collector.yaml</code>.</li>
-            <li><b>No personal data</b> (names, emails) in logs or span tags.</li>
-          </ul>
-        </div>
+      <div class="card stack">
+        <h2>Every gRPC link</h2>
+        <div class="tbl"><table>
+          <thead><tr><th>Caller → server</th><th>Service (.proto)</th><th>Calls</th><th>What it's for</th></tr></thead>
+          <tbody>
+            <tr><td>Python node → Host</td><td><code>modelmint.jobs.v1.AnalyticsJobs</code></td><td>Lease, Heartbeat, Submit, Fail</td><td>Pull work and return signed results</td></tr>
+            <tr><td>Host / Worker → Python node</td><td><code>modelmint.analytics.v1.AnalyticsControl</code></td><td>Cancel, Health, Capabilities</td><td>Stop a running job, check nodes, see installed test packs</td></tr>
+            <tr><td>Worker → each Host node</td><td><code>modelmint.host.v1.Notifications</code></td><td>Publish</td><td>Live updates to users connected to that node</td></tr>
+            <tr><td>Host → Worker</td><td><code>modelmint.worker.v1.WorkerControl</code></td><td>TriggerIngestion, VerifyChain, GetBacklog</td><td>Operations console actions</td></tr>
+            <tr><td>Client systems → Host (B2B)</td><td><code>modelmint.gate.v1.ModelGate</code></td><td>CheckGate, WatchStatus (server stream), SubmitScores (client stream)</td><td>"May I use this model version?", kill-switch changes pushed instantly, scored data streamed in</td></tr>
+          </tbody>
+        </table></div>
+        <p class="note">All links use mTLS on internal ports (Host 9443, Python 9444, Worker 9445), require a deadline, and carry OpenTelemetry trace context, so one trace follows a request across programs. Modules inside the Host never call each other through gRPC: that would split the single transaction (change + ledger + outbox) and add network hops for no gain. REST, file and database ingestion stay available for client systems that can't use gRPC.</p>
       </div>
     </div>
   </section>
@@ -351,37 +340,50 @@ td code{white-space:nowrap}
   <!-- FLOW -->
   <section class="view" id="flow" role="tabpanel" aria-labelledby="tab-flow" hidden>
     <div class="stack">
-    <div class="card stack">
-      <div>
-        <h2>Example 1: a signed-in user opens the dashboard summary</h2>
-        <p class="lede">The token and permission checks happen once, in the gateway, using the shared cache. Services still verify the token but don't repeat the permission lookup. Every hop is recorded as a span in one OpenTelemetry trace, so you can see the whole request and where the time went in one view.</p>
+      <div class="card stack">
+        <div>
+          <h2>Flow 1: a validator approves a model version</h2>
+          <p class="lede">Every governed change follows the same path, so licence, permission, segregation of duties and the ledger can never be skipped.</p>
+        </div>
+        <ol class="steps">
+          <li class="l-web"><div><div class="where"><b>Angular client</b></div><p>Sends <code>POST /api/v1/approval/cases/{id}/decision</code>. The browser holds only an HttpOnly session cookie and sends the CSRF header; it never sees an access token.</p></div></li>
+          <li class="l-api"><div><div class="where"><b>ModelMint.Host · BFF</b><span class="tag l-api">L2</span></div><p>Turns the cookie into the signed-in user (from OIDC or LDAP), with roles from <code>sec.RoleAssignment</code> and AD group mappings.</p></div></li>
+          <li class="l-api"><div><div class="where"><b>Endpoint filters</b><span class="tag l-api">L9</span></div><p>Licence state (Read-only blocks writes), entitlement (Approval &amp; Release needs Enterprise), then permission <code>approval.decide</code> with scope (legal entity, org unit).</p></div></li>
+          <li class="l-app"><div><div class="where"><b>Approval.Application</b><span class="tag l-app">Command</span></div><p><code>DecideApprovalHandler</code> loads the case and checks record-level rules: is this user assigned to this case?</p></div></li>
+          <li class="l-ker"><div><div class="where"><b>Kernel · GuardEvaluator + SodService</b><span class="tag l-ker">L3</span></div><p>The transition's guards run (validation done, no open blocking findings), then SoD: the approver can't be the developer or the validator of this version. The outcome goes to <code>sec.SodDecisionLog</code>.</p></div></li>
+          <li class="l-ker"><div><div class="where"><b>One SQL transaction</b><span class="tag l-ker">L5</span></div><p>The state change (<code>apr.ApprovalCase</code>, <code>wf.StateTransition</code>), the ledger entry (<code>ldg.LedgerSnapshot</code> with its per-stream hash) and an outbox message all commit together, or none of them do.</p></div></li>
+          <li class="l-api"><div><div class="where"><b>ModelMint.Worker</b><span class="tag l-api">async</span></div><p>Reads the outbox: links the entry into the global chain, updates <code>rpt.ModelSummary</code>, sends the Teams/email notification, calls each Host node's <code>Notifications.Publish</code> over gRPC so connected users see the change live, pushes the status change to client systems watching through <code>ModelGate.WatchStatus</code>, and forwards the audit event to SIEM.</p></div></li>
+        </ol>
       </div>
-      <ol class="steps">
-        <li class="l-cmn"><div><div class="where"><b>Browser → Microsoft Entra ID</b></div><p>The user signs in with their company AD account (single sign-on, plus MFA if your policy requires it). The web app uses MSAL to get an access token for <code>api://company-platform</code>. Passwords never reach our services.</p></div></li>
-        <li class="l-cmn"><div><div class="where"><b>Browser</b></div><p>Calls <code>GET /api/dashboard/summary</code> with <code>Authorization: Bearer &lt;token&gt;</code>.</p></div></li>
-        <li class="l-gw"><div><div class="where"><b>API Gateway</b><span class="tag l-gw">Authentication</span></div><p>Checks the token's signature, issuer, audience and expiry locally with Entra ID's public signing keys, which are cached in memory. An invalid or expired token gets <b>401</b>. No network call.</p></div></li>
-        <li class="l-cache"><div><div class="where"><b>API Gateway → Redis</b><span class="tag l-cache">Cache</span></div><p>Blocked-user check: one lookup of <code>blocked:{oid}</code> (the user's AD object id). If the user was disabled in this app, the request gets <b>401</b> even though their AD token is still valid.</p></div></li>
-        <li class="l-cache"><div><div class="where"><b>API Gateway → cache → Auth</b><span class="tag l-gw">Authorization</span></div><p>The route needs <code>dashboard.view</code>. The user's permissions come from memory, then Redis, and only on a miss from Auth.API over gRPC (then kept for 10 minutes). A missing permission gets <b>403</b>.</p></div></li>
-        <li class="l-gw"><div><div class="where"><b>API Gateway</b><span class="tag l-gw">Routing</span></div><p>Applies the rate limit (<b>429</b> if exceeded), then forwards the request to Dashboard.API with the same JWT and an <code>x-correlation-id</code> header.</p></div></li>
-        <li class="l-api"><div><div class="where"><b>Dashboard.API</b><span class="tag l-api">API</span></div><p>Verifies the JWT again with Common.Auth (local and cheap), because services trust only signed tokens, never plain headers. Calls <code>IDashboardService.GetSummaryAsync</code>.</p></div></li>
-        <li class="l-bll"><div><div class="where"><b>Dashboard.BLL</b><span class="tag l-bll">BLL</span></div><p>Checks the data-level rule (does this user belong to this customer?), then calls License and Auth over gRPC in parallel, with deadlines, and reads its own widgets from the DAL.</p></div></li>
-        <li class="l-dal"><div><div class="where"><b>License.API → BLL → DAL</b><span class="tag l-dal">DAL</span></div><p>Applies license rules and reads the <code>license</code> schema. It doesn't call Dashboard back while answering, so there's no loop.</p></div></li>
-        <li class="l-api"><div><div class="where"><b>Dashboard.API → Gateway → Browser</b></div><p>Returns JSON. If License was down, the summary still loads with a "licenses unavailable" flag instead of failing the whole page.</p></div></li>
-      </ol>
-    </div>
-    <div class="card stack">
-      <div>
-        <h2>Example 2: the reverse direction, Auth calls Dashboard</h2>
-        <p class="lede">The same pattern works the other way: here Auth is the caller and Dashboard is the gRPC server.</p>
+      <div class="card stack">
+        <div>
+          <h2>Flow 2: a test pack runs in the Analytics Plane</h2>
+          <p class="lede">Python never touches the database. It pulls work, proves who it is, checks its inputs and returns a signed result that .NET verifies before recording anything.</p>
+        </div>
+        <ol class="steps">
+          <li class="l-app"><div><div class="where"><b>Testing.Application</b></div><p>A user starts a test run. <code>tst.TestRun</code> and <code>ana.AnalyticsJob</code> (status Queued) are written in one transaction with their ledger entry. The dataset's content hash is already recorded in <code>tst.Dataset</code>.</p></div></li>
+          <li class="l-py"><div><div class="where"><b>Python node → Host (gRPC)</b><span class="tag l-py">lease</span></div><p>A worker node calls <code>AnalyticsJobs.Lease</code> over gRPC with mTLS. SQL's <code>READPAST</code> locking hands each job to exactly one node, with a 2-minute lease.</p></div></li>
+          <li class="l-py"><div><div class="where"><b>Verify job token</b><span class="tag l-py">security</span></div><p>The lease includes a job token signed by the Host (Ed25519). The worker checks the signature, expiry, job id and licensed feature before doing anything.</p></div></li>
+          <li class="l-inf"><div><div class="where"><b>Load inputs from the Artefact Store</b><span class="tag l-inf">hash check</span></div><p>Reads the dataset files and recomputes their SHA-256. If it differs from the hash in the job, the job fails. Heartbeats keep the lease alive meanwhile.</p></div></li>
+          <li class="l-py"><div><div class="where"><b>Run the test pack</b><span class="tag l-py">isolated</span></div><p>Runs in a separate process with resource limits (R1: scored data only; R2 sandbox: ONNX/skops only, no network). Writes result artefacts back to the store.</p></div></li>
+          <li class="l-py"><div><div class="where"><b>Signed result envelope</b><span class="tag l-py">result</span></div><p>Calls <code>AnalyticsJobs.Submit</code> with canonical JSON signed by the node's own Ed25519 key, plus the environment fingerprint and artefact hashes.</p></div></li>
+          <li class="l-ker"><div><div class="where"><b>Host verifies and records</b><span class="tag l-ker">one transaction</span></div><p>Checks the node signature and artefact hashes, then writes <code>ana.AnalyticsJobResult</code>, <code>tst.TestResult</code> rows and the ledger entry together. If the lease expires the job is re-queued; after the maximum attempts it is dead-lettered and an operator is alerted.</p></div></li>
+          <li class="l-api"><div><div class="where"><b>Host → Python node (gRPC)</b><span class="tag l-api">other direction</span></div><p>If a user cancels the run, the Host calls <code>AnalyticsControl.Cancel</code> on the node holding the lease, which stops the isolated process. The operations console uses <code>Health</code> and <code>Capabilities</code> on every node the same way.</p></div></li>
+        </ol>
       </div>
-      <ol class="steps">
-        <li class="l-gw"><div><div class="where"><b>Admin → API Gateway → Auth.API</b></div><p><code>DELETE /api/auth/users/42</code>. The gateway checks that the admin has <code>user.delete</code>.</p></div></li>
-        <li class="l-bll"><div><div class="where"><b>Auth.BLL</b><span class="tag l-bll">BLL</span></div><p>Disables the user in the <code>auth</code> schema, then uses PermissionCacheInvalidator to clear <code>perm:42</code> and add <code>blocked:42</code> to Redis.</p></div></li>
-        <li class="l-ctr"><div><div class="where"><b>Auth.BLL → Dashboard.API</b><span class="tag l-ctr">gRPC</span></div><p>Calls <code>DashboardGrpc.RemoveUserData</code> using the generated client from <code>Dashboard.Contracts</code>. Dashboard.BLL deletes the user's widgets from the <code>dashboard</code> schema.</p></div></li>
-        <li class="l-cache"><div><div class="where"><b>Next request from user 42</b><span class="tag l-cache">Cache</span></div><p>The gateway finds <code>blocked:42</code> in Redis and returns <b>401</b> straight away, even though the user's AD token hasn't expired yet.</p></div></li>
-      </ol>
-      <p class="note">If the clean-up must not be lost when Dashboard is down, send it as an event through a message broker instead of a direct gRPC call.</p>
-    </div>
+      <div class="card stack">
+        <div>
+          <h2>Flow 3: a bank's scoring engine checks the gate (B2B)</h2>
+          <p class="lede">Client systems that support gRPC use the ModelGate service from the client SDK. Others keep using REST, files or database feeds.</p>
+        </div>
+        <ol class="steps">
+          <li class="l-cmn"><div><div class="where"><b>Scoring engine → Host</b><span class="tag l-api">server stream</span></div><p>At start-up the engine opens one gRPC channel (mTLS + its connector token) and calls <code>WatchStatus</code> for the models it uses. The stream stays open.</p></div></li>
+          <li class="l-api"><div><div class="where"><b>CheckGate</b><span class="tag l-api">unary</span></div><p>Before using a model version, the engine calls <code>CheckGate</code>. The Host answers from the Registry read model in milliseconds, so it can be called often.</p></div></li>
+          <li class="l-ker"><div><div class="where"><b>Kill switch in ModelMint</b><span class="tag l-ker">governed</span></div><p>A breach leads to a kill-switch decision in the Issues module: the usual guards, SoD, ledger entry and outbox message, in one transaction.</p></div></li>
+          <li class="l-api"><div><div class="where"><b>Pushed to the engine</b><span class="tag l-api">seconds</span></div><p>The Worker publishes the event, and the Host writes a <code>StatusChange</code> (Suspended) to every open <code>WatchStatus</code> stream. The engine stops using the version; the next <code>CheckGate</code> returns <code>allowed = false</code>. The time to acknowledge counts against the <code>iss.KillSwitchEvent</code> SLA.</p></div></li>
+          <li class="l-inf"><div><div class="where"><b>SubmitScores</b><span class="tag l-inf">client stream</span></div><p>At the end of the day the engine streams scored records. ModelMint tokenizes customer ids on arrival, runs the same envelope and content checks as file ingestion, and returns a <code>BatchReceipt</code> with control totals.</p></div></li>
+        </ol>
+      </div>
     </div>
   </section>
 
@@ -391,58 +393,113 @@ td code{white-space:nowrap}
       <div class="card stack">
         <h2>Who may reference what</h2>
         <div class="tbl"><table>
-          <thead><tr><th>Project</th><th>Same service BLL</th><th>Same service DAL</th><th>Contracts</th><th>Common</th><th>Other service's BLL/DAL</th></tr></thead>
+          <thead><tr><th>Project</th><th>May reference</th><th>Must not reference</th></tr></thead>
           <tbody>
-            <tr><td><code>*.API</code></td><td class="yes">Yes</td><td class="dim">Only for DI in Program.cs</td><td class="yes">Yes (own, for gRPC server)</td><td class="yes">Yes</td><td class="noo">Never</td></tr>
-            <tr><td><code>*.BLL</code></td><td class="dim">—</td><td class="yes">Yes, through interfaces</td><td class="yes">Yes (to call other services)</td><td class="yes">Common.Core</td><td class="noo">Never</td></tr>
-            <tr><td><code>*.DAL</code></td><td class="noo">No</td><td class="dim">—</td><td class="noo">No</td><td class="yes">Common.Core, Common.DAL</td><td class="noo">Never</td></tr>
-            <tr><td><code>Common.*</code></td><td class="noo">No</td><td class="noo">No</td><td class="noo">No</td><td class="yes">Other Common libs</td><td class="noo">Never</td></tr>
+            <tr><td><code>X.Domain</code></td><td>SharedKernel, Kernel base types (GovernedRecord)</td><td class="noo">EF Core, ASP.NET, any other module</td></tr>
+            <tr><td><code>X.Application</code></td><td>X.Domain, Kernel, ModelMint.Contracts</td><td class="noo">Other modules' Domain / Application / Infrastructure</td></tr>
+            <tr><td><code>X.Infrastructure</code></td><td>X.Application, Shared.Infrastructure</td><td class="noo">Other modules' DbContexts or tables</td></tr>
+            <tr><td><code>X.Api</code></td><td>X.Application</td><td class="noo">X.Infrastructure (except registration), business rules</td></tr>
+            <tr><td><code>ModelMint.Kernel</code></td><td>SharedKernel, Contracts</td><td class="noo">Any module</td></tr>
+            <tr><td><code>ModelMint.Host / Worker</code></td><td>Every module's registration extension, Kernel, Shared</td><td class="noo">Module internals (they only call AddXModule / MapXEndpoints)</td></tr>
+            <tr><td><code>analytics/</code> (Python)</td><td><code>contracts/protos</code> (generated code), <code>contracts/hashing</code>, Artefact Store</td><td class="noo">SQL Server, any .NET code</td></tr>
           </tbody>
         </table></div>
+        <p class="note">These rules are enforced in CI by <code>tests/ModelMint.ArchitectureTests</code>, so a wrong reference fails the build instead of waiting for code review.</p>
       </div>
       <div class="grid2">
         <div class="card stack">
-          <h2>Team ownership (CODEOWNERS)</h2>
+          <h2>Team ownership (suggested, by roadmap increment)</h2>
           <div class="tbl"><table>
-            <thead><tr><th>Path</th><th>Reviewers</th></tr></thead>
+            <thead><tr><th>Team</th><th>Owns</th></tr></thead>
             <tbody>
-              <tr><td><code>src/Gateway/**</code></td><td>Platform team + Auth team</td></tr>
-              <tr><td><code>src/Services/License/**</code></td><td>License team</td></tr>
-              <tr><td><code>src/Services/Dashboard/**</code></td><td>Dashboard team</td></tr>
-              <tr><td><code>src/Services/Auth/**</code></td><td>Auth team</td></tr>
-              <tr><td><code>src/Contracts/**</code></td><td>Owning team + every consuming team</td></tr>
-              <tr><td><code>src/Common/**</code> (incl. Auth, Caching), <code>Directory.*.props</code></td><td>Tech lead / architects</td></tr>
+              <tr><td>Platform</td><td>Host, Kernel, Worker, Shared, db/, installer/, Administration</td></tr>
+              <tr><td>Universe (increment 1)</td><td>Intake, Registry, Tiering, Reporting (Control Tower read models)</td></tr>
+              <tr><td>Assurance (increment 2)</td><td>Validation, Approval, Issues (incl. BCM), Development</td></tr>
+              <tr><td>Operate (increment 3)</td><td>Monitoring, Testing, Artefacts, Integration</td></tr>
+              <tr><td>Analytics</td><td>analytics/, contracts/protos and contracts/hashing (with Platform)</td></tr>
+              <tr><td>Front end</td><td>src/Web/modelmint-web</td></tr>
             </tbody>
           </table></div>
         </div>
         <div class="card stack">
           <h2>Ground rules</h2>
           <ul class="rules">
-            <li>Controllers and gRPC services stay thin; all logic lives in the BLL.</li>
-            <li>The BLL depends on repository interfaces, so it can be unit-tested with mocks.</li>
-            <li>One DbContext, one schema, one migrations folder per service.</li>
-            <li>Cross-service data comes over gRPC, never through a shared table.</li>
-            <li>Proto changes are additive only. Breaking changes go into a new <code>v2</code> package.</li>
+            <li>Every governed change goes through a command handler, the Kernel's guards and SoD, and <code>LedgerWriter</code>, in one transaction.</li>
+            <li>Modules talk to each other only through <code>ModelMint.Contracts</code>: public interfaces for questions, outbox events for "something happened".</li>
+            <li>One DbContext per module, pinned to its own schema. Cross-schema foreign keys may exist in SQL, but code doesn't navigate across modules.</li>
+            <li>Every entity carries TenantId, LegalEntityId, audit columns and RowVersion; tenant filters are applied automatically.</li>
+            <li>Python never connects to SQL Server; .NET never runs analytics code.</li>
+            <li>Every call between programs is gRPC with mTLS and a deadline, defined in <code>contracts/protos</code>. Modules inside the Host never call each other through gRPC.</li>
+            <li>Ledger tables are append-only at the database level, not only by convention.</li>
+            <li>SHA-256 is for integrity (chains, content hashes). Secrets in data use HMAC with a key from the key adapter; encryption is TLS, TDE and key adapters.</li>
             <li>Package versions live only in <code>Directory.Packages.props</code>.</li>
-            <li>Every gRPC call sets a deadline; every service exposes <code>/health</code>.</li>
-            <li>All outside traffic enters through the API Gateway; service ports stay on the internal network.</li>
-            <li>The gateway does the coarse checks (logged in, has permission X). Data-level checks (does this user belong to this customer?) happen in the service BLL.</li>
-            <li>Cache keys and lifetimes are defined only in Common.Caching; only Auth clears permission entries.</li>
-            <li>gRPC can go both ways between services, but never in a loop within one request.</li>
-            <li>Users sign in with company AD (Microsoft Entra ID); services never see passwords.</li>
-            <li>Every service calls <code>AddCommonTelemetry</code>; no service has its own telemetry setup.</li>
           </ul>
         </div>
       </div>
       <div class="card stack">
-        <h2>Adding a new service (for example Billing)</h2>
+        <h2>Deployment profiles and what each needs from the code</h2>
+        <div class="tbl"><table>
+          <thead><tr><th></th><th>S · Single server</th><th>M · Standard</th><th>L · High availability + DR</th></tr></thead>
+          <tbody>
+            <tr><td>.NET</td><td>Host in IIS + Worker service on one VM</td><td>2 app VMs behind a load balancer</td><td>2+ app VMs + load balancer</td></tr>
+            <tr><td>Python</td><td>Same VM</td><td>1 analytics VM</td><td>2+ analytics VMs</td></tr>
+            <tr><td>SQL Server</td><td>Single instance</td><td>Backup + log shipping</td><td>Always On availability group + DR replica</td></tr>
+            <tr><td>Cache</td><td>In-process memory</td><td>In-process + SQL Server distributed cache (or Redis if the bank allows)</td><td>Same as M</td></tr>
+            <tr><td>SignalR</td><td>Single node</td><td>Sticky sessions + backplane (SQL Server or Redis)</td><td>Same as M</td></tr>
+            <tr><td>Quartz timers</td><td>RAM or SQL store</td><td>SQL store, clustered (only one Worker fires each job)</td><td>Same as M</td></tr>
+            <tr><td>gRPC</td><td>Internal ports 9443 (Host), 9444 (Python), 9445 (Worker), reachable only from the same machine</td><td>Same ports between VMs; firewall allows only app ⇄ analytics nodes; load balancer passes HTTP/2 for client-system gRPC</td><td>Same as M, with client systems connecting through the load balancer with HTTP/2 end to end</td></tr>
+            <tr><td>Keys</td><td>DPAPI / certificate store</td><td>Certificate store</td><td>HSM through the key adapter</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+      <div class="card stack">
+        <h2>Adding a new module</h2>
         <ol class="rules">
-          <li>Create <code>src/Services/Billing/</code> with <code>Billing.API</code>, <code>Billing.BLL</code>, <code>Billing.DAL</code>.</li>
-          <li>Add <code>Billing.Contracts</code> with <code>Protos/billing/v1/billing.proto</code> if other services will call it.</li>
-          <li>Create the <code>billing</code> schema and a database login limited to it; add the connection string to configuration.</li>
-          <li>Reference Common libraries, register the service in <code>deploy/docker-compose.yml</code>, add a CODEOWNERS line and a path-filtered pipeline.</li>
-          <li>Add <code>tests/Billing.UnitTests</code> and <code>tests/Billing.IntegrationTests</code>.</li>
+          <li>Create <code>src/Modules/NewThing/</code> with <code>NewThing.Domain</code>, <code>.Application</code>, <code>.Infrastructure</code>, <code>.Api</code>.</li>
+          <li>Pick a schema code, add <code>NewThingDbContext</code> with <code>HasDefaultSchema</code>, and its first migration.</li>
+          <li>Register ledger event types in <code>ldg.EventTypeRegistry</code> and permissions in <code>sec.Permission</code>.</li>
+          <li>Add its public interface and events to <code>ModelMint.Contracts</code>, plus <code>AddNewThingModule()</code> / <code>MapNewThingEndpoints()</code>.</li>
+          <li>Add the entitlement key to the licence tiers, a CODEOWNERS line, and the module to the architecture tests.</li>
         </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- REVIEW -->
+  <section class="view" id="review" role="tabpanel" aria-labelledby="tab-review" hidden>
+    <div class="stack">
+      <div class="card stack">
+        <h2>Decisions to make before building</h2>
+        <p class="lede">Points found while comparing the v0.3 documents with this structure. Each one has a recommendation; none is a blocker if decided early.</p>
+        <div class="issues">
+          <div class="issue l-bad"><div class="top"><span class="tag l-bad">Conflict</span><h3>Python ledger code vs "no direct DB access"</h3></div>
+            <p class="src">Governance doc p.4 lists existing Python <code>mm-ledger</code> with a "SQL Server ledger backend … same tables"; the boundary rule (p.6) says analytics never touches the database.</p>
+            <p class="rec"><b>Recommendation:</b> all ledger writes go through .NET <code>LedgerWriter</code>. Keep <code>mm_ledger</code> for verification only, working on exported snapshots and digests, and remove its SQL backend.</p></div>
+          <div class="issue l-ker"><div class="top"><span class="tag l-ker">Spec needed</span><h3>One hash spec for .NET and Python</h3></div>
+            <p class="src">"Same tables, same hash spec" across two languages.</p>
+            <p class="rec"><b>Recommendation:</b> write <code>contracts/hashing/canonical-hash-spec.md</code> (RFC 8785 canonical JSON, 6-digit UTC timestamps, decimals as strings, lower-case GUIDs) plus <code>test-vectors.json</code>, and run both implementations against them in CI.</p></div>
+          <div class="issue l-bad"><div class="top"><span class="tag l-bad">Security</span><h3>Tokens for account numbers, PAN, Aadhaar</h3></div>
+            <p class="src"><code>CustomerToken</code> / <code>AccountToken</code> are <code>char(64)</code>, which looks like plain SHA-256.</p>
+            <p class="rec"><b>Recommendation:</b> use HMAC-SHA256 with a per-tenant secret from the key adapter. These values have so few possibilities that plain SHA-256 can be reversed by trying them all.</p></div>
+          <div class="issue l-ker"><div class="top"><span class="tag l-ker">Inconsistency</span><h3>Result signature size</h3></div>
+            <p class="src"><code>ana.AnalyticsJobResult.Signature</code> is <code>varbinary(32)</code> (HMAC size, shared secret); licence and usage signatures are <code>varbinary(64)</code> (Ed25519).</p>
+            <p class="rec"><b>Recommendation:</b> an Ed25519 key per analytics node, so the Host can verify results but can never create one. Make the column <code>varbinary(64)</code> and add the signing node's key id.</p></div>
+          <div class="issue l-inf"><div class="top"><span class="tag l-inf">Performance</span><h3>Global chain on every write</h3></div>
+            <p class="src">Per-stream and global chain written in the same transaction; <code>ldg.LedgerHead</code> is a single row.</p>
+            <p class="rec"><b>Recommendation:</b> chain each stream inside the transaction, and let the Worker append the global chain in order to a separate append-only table (for example <code>ldg.GlobalChainEntry</code>). Otherwise every write in the system waits on one row, and append-only snapshot rows couldn't be updated with the global hash later anyway.</p></div>
+          <div class="issue l-api"><div class="top"><span class="tag l-api">Profiles M / L</span><h3>Multi-node behaviour isn't specified</h3></div>
+            <p class="src">Two or more app nodes behind a load balancer.</p>
+            <p class="rec"><b>Recommendation:</b> decide SignalR (sticky sessions + backplane), Quartz (clustered SQL store), cache (SQL distributed cache or Redis), and BFF session storage (shared ticket store) before increment 0 ends.</p></div>
+          <div class="issue l-api"><div class="top"><span class="tag l-api">Decided: gRPC</span><h3>gRPC between all programs: update the documents and check hosting</h3></div>
+            <p class="src">Decision: gRPC for Host ⇄ Python, Host ⇄ Worker and client systems → Host. v0.3 still says "HTTPS Job API", and only REST/SDK, DB, files and MQ for client systems.</p>
+            <p class="rec"><b>Recommendation:</b> update the runtime and integration pages, then confirm before increment 0: (1) Windows Server 2022+ if the Host stays in IIS, otherwise run the Host as a Windows Service on Kestrel; (2) the bank's load balancer and firewalls pass HTTP/2 end to end for client-system gRPC; (3) a certificate per node (Host, Worker, each analytics node) from the bank's internal CA, with a rotation process; (4) keep REST, file and database ingestion as well, because many bank systems can't speak gRPC.</p></div>
+          <div class="issue l-cmn"><div class="top"><span class="tag l-cmn">Wording</span><h3>"SHA-256 encryption"</h3></div>
+            <p class="src">Raised in discussion, not in the documents.</p>
+            <p class="rec"><b>Recommendation:</b> the documents use SHA-256 correctly, for integrity. If specific columns must be encrypted, add SQL Server Always Encrypted or AES-GCM through the key adapters. Licence certificates are signed (Ed25519), not encrypted.</p></div>
+          <div class="issue l-inf"><div class="top"><span class="tag l-inf">Data</span><h3>Tenant isolation</h3></div>
+            <p class="src">Every table carries <code>TenantId</code> and <code>LegalEntityId</code>.</p>
+            <p class="rec"><b>Recommendation:</b> EF Core global query filters in the shared DbContext base, backed by SQL Server row-level security, so a missed filter can't leak data between tenants or legal entities.</p></div>
+        </div>
       </div>
     </div>
   </section>
@@ -452,213 +509,489 @@ td code{white-space:nowrap}
 (function(){
   "use strict";
 
-  /* ---------- data ---------- */
-  const L = {api:"l-api",bll:"l-bll",dal:"l-dal",ctr:"l-ctr",cmn:"l-cmn",gw:"l-gw",cache:"l-cache"};
-  const LABEL = {api:"API",bll:"BLL",dal:"DAL",ctr:"Contract",cmn:"Common",gw:"Gateway",cache:"Cache"};
+  /* ---------- helpers ---------- */
+  const L = {api:"l-api",app:"l-app",dom:"l-dom",inf:"l-inf",ker:"l-ker",py:"l-py",cmn:"l-cmn",web:"l-web"};
+  const LABEL = {api:"Api",app:"Application",dom:"Domain",inf:"Infrastructure",ker:"Kernel",py:"Python",cmn:"Shared",web:"Angular"};
 
-  function service(N, schema, entity, owner, calls, apiNote, bllNote, extraBll){
-    extraBll = extraBll || [];
-    const e = entity, el = entity.charAt(0).toLowerCase()+entity.slice(1);
-    const callRefs = calls.map(c => c+".Contracts");
-    return {n:N, t:"dir", k:"svc", owner,
-      d:`The ${N} microservice. It is built, tested and deployed on its own and is the only code that touches the "${schema}" schema. It is a gRPC server for the other services (in ${N}.API) and a gRPC client of ${calls.join(" and ")} (in ${N}.BLL), so calls can go both ways.`,
-      contains:[N+".API (Web API host)",N+".BLL (business logic)",N+".DAL (data access)","Dockerfile"],
+  /* ---------- module generator ---------- */
+  function mod(N, schema, root, route, perm, feature, summary, owner, extra){
+    const rl = root.charAt(0).toLowerCase() + root.slice(1);
+    extra = extra || {};
+    return {n:N, t:"dir", k:"app", tagLabel:"Module", owner,
+      d:`The ${N} module (schema "${schema}"). ${summary} It is four projects that build into the one Host; it is not deployed on its own.`,
+      contains:[N+".Domain: entities and business rules",N+".Application: commands, queries, handlers",N+".Infrastructure: DbContext, mappings, repositories, migrations",N+".Api: minimal API endpoints"],
       kids:[
-      {n:N+".API", t:"proj", k:"api", owner,
-        d:`ASP.NET Core Web API project. It is the entry point of the service: ${apiNote} It wires up dependency injection, auth and logging, and contains no business rules.`,
-        refs:[N+".BLL", N+".DAL (only to register it in Program.cs)", N+".Contracts (gRPC server base classes)", "Common.Grpc, Common.Telemetry, Common.Auth"],
-        never:["Business logic or SQL","Another service's BLL or DAL"],
+        {n:N+".Domain", t:"proj", k:"dom", owner,
+          d:`Entities, value objects and rules of ${N}. Pure C#: no EF Core, no HTTP. Governed records inherit GovernedRecord from the Kernel so the workflow engine can move them between states.`,
+          refs:["ModelMint.SharedKernel","ModelMint.Kernel (GovernedRecord base only)"], never:["EF Core, ASP.NET Core","Any other module"],
+          kids:[
+            {n:"Entities", t:"dir", k:"dom", d:"Aggregates and child entities.", kids:[
+              {n:root+".cs", t:"file", k:"dom", d:`Aggregate root stored in ${schema}.${root}.`, code:
+`public sealed class ${root} : GovernedRecord          // table ${schema}.${root}
+{
+    public string Code { get; private set; } = "";
+    public string Name { get; private set; } = "";
+
+    private ${root}() { }                              // for EF Core
+
+    public static ${root} Create(Guid tenantId, Guid legalEntityId, string code, string name)
+    {
+        if (string.IsNullOrWhiteSpace(code)) throw new DomainException("Code is required");
+        return new ${root} { TenantId = tenantId, LegalEntityId = legalEntityId, Code = code, Name = name };
+    }
+
+    // Business rules are methods here. State changes go through the Kernel's WorkflowEngine.
+}`}]},
+            {n:"Events", t:"dir", k:"dom", d:`Domain events raised by ${N} (for example ${root}Created). Published to other modules through the outbox.`},
+            {n:"Rules", t:"dir", k:"dom", d:"Calculations and invariants that don't belong to one entity."}
+          ].concat(extra.domain||[])},
+        {n:N+".Application", t:"proj", k:"app", owner,
+          d:`Use cases of ${N}: one handler per command or query. Handlers check record-level permissions, call the Kernel (guards, SoD, LedgerWriter) and run inside one transaction.`,
+          refs:[N+".Domain","ModelMint.Kernel","ModelMint.Contracts (to ask other modules)"], never:["Other modules' Domain, Application or Infrastructure","SQL or HTTP details"],
+          kids:[
+            {n:"Commands", t:"dir", k:"app", d:"State-changing use cases.", kids:[
+              {n:"Create"+root+".cs", t:"file", k:"app", d:"Command and handler. The domain change, its ledger entry and the outbox message commit together.", code:
+`public sealed record Create${root}Command(Guid LegalEntityId, string Code, string Name);
+
+public sealed class Create${root}Handler(
+    I${N}Repository repo, LedgerWriter ledger, IOutbox outbox, IUnitOfWork uow, ICurrentUser user)
+{
+    public async Task<Result<Guid>> Handle(Create${root}Command cmd, CancellationToken ct)
+    {
+        if (!user.HasScope(cmd.LegalEntityId)) return Result.Forbidden();   // record / scope check
+
+        var record = ${root}.Create(user.TenantId, cmd.LegalEntityId, cmd.Code, cmd.Name);
+
+        await uow.ExecuteAsync(async () =>                                 // one SQL transaction
+        {
+            await repo.AddAsync(record, ct);
+            await ledger.AppendAsync(record.LedgerStreamId, "${schema}.${rl}.created", record, user.Actor, ct);
+            outbox.Add(new ${root}Created(record.Id));                     // the Worker publishes it
+        }, ct);
+
+        return Result.Ok(record.Id);
+    }
+}`}]},
+            {n:"Queries", t:"dir", k:"app", d:"Read use cases. Simple reads use the module's DbContext with AsNoTracking; dashboards read rpt read models."},
+            {n:"Contracts", t:"dir", k:"app", d:`Implements ${N}'s public interface from ModelMint.Contracts, which is how other modules ask ${N} questions.`},
+            {n:"Validators", t:"dir", k:"app", d:"Input validation for commands (FluentValidation or hand-written)."},
+            {n:"DependencyInjection.cs", t:"file", k:"app", d:`Add${N}Module(): registers handlers, validators and the public interface implementation.`}
+          ].concat(extra.application||[])},
+        {n:N+".Infrastructure", t:"proj", k:"inf", owner,
+          d:`Data access for the "${schema}" schema only: DbContext, EF Core mappings, repositories and migrations.`,
+          refs:[N+".Application (implements its interfaces)","ModelMint.Infrastructure (DbContext base, tenant filters, outbox)"], never:["Other schemas' tables","Business rules"],
+          kids:[
+            {n:N+"DbContext.cs", t:"file", k:"inf", d:`EF Core context pinned to the ${schema} schema. Shares the request's SQL connection and transaction with the Kernel.`, code:
+`public sealed class ${N}DbContext(DbContextOptions<${N}DbContext> options, ITenantContext tenant)
+    : ModelMintDbContext(options, tenant)                  // tenant filters, audit columns, RowVersion
+{
+    public DbSet<${root}> ${root}s => Set<${root}>();
+
+    protected override void OnModelCreating(ModelBuilder b)
+    {
+        b.HasDefaultSchema("${schema}");
+        b.ApplyConfigurationsFromAssembly(typeof(${N}DbContext).Assembly);
+        base.OnModelCreating(b);
+    }
+}`},
+            {n:"Configurations", t:"dir", k:"inf", d:"IEntityTypeConfiguration classes: table names, keys, indexes, column types matching the ER model."},
+            {n:"Repositories", t:"dir", k:"inf", d:"Repository implementations for the Application's interfaces."},
+            {n:"Migrations", t:"dir", k:"inf", d:`EF Core migrations for the ${schema} schema only. The installer applies all modules' migrations in a fixed order.`}
+          ].concat(extra.infrastructure||[])},
+        {n:N+".Api", t:"proj", k:"api", owner,
+          d:`Minimal API endpoints for ${N} under /api/v1/${route}. Thin: bind input, call one handler, return the result. Every route declares its entitlement and permission.`,
+          refs:[N+".Application"], never:[N+".Infrastructure","Business rules"],
+          kids:[
+            {n:N+"Endpoints.cs", t:"file", k:"api", d:"Route group with entitlement and permission requirements.", code:
+`public static class ${N}Endpoints
+{
+    public static RouteGroupBuilder Map${N}Endpoints(this RouteGroupBuilder api)
+    {
+        var g = api.MapGroup("/${route}").WithTags("${N}")
+                   .RequireEntitlement("${feature}");             // licensed tier
+
+        g.MapPost("/", (Create${root}Command cmd, Create${root}Handler h, CancellationToken ct)
+                => h.Handle(cmd, ct).ToHttpResult())
+         .RequirePermission("${perm}.create");                    // RBAC + scope
+
+        g.MapGet("/{id:guid}", (Guid id, Get${root}Handler h, CancellationToken ct)
+                => h.Handle(id, ct).ToHttpResult())
+         .RequirePermission("${perm}.read");
+
+        return g;
+    }
+}`}
+          ].concat(extra.api||[])}
+      ]};
+  }
+
+  const MODULES = [
+    mod("Intake","itk","IntakeRequest","intake","intake","intake","Intake requests, screening answers, duplicate detection and EUC records.","Universe team"),
+    mod("Registry","reg","Model","registry","registry.model","registry","The enterprise model inventory: models, versions, bitemporal status periods, use cases, parties and external system bindings.","Universe team"),
+    mod("Tiering","tie","TieringAssessment","tiering","tiering","tiering","Materiality and complexity scoring, grid tier, critical gates and tier overrides.","Universe team"),
+    mod("Development","dev","DevelopmentDossier","development","development","development-vendor","Development dossiers, assumption and limitation registers, vendors and vendor assessments.","Assurance team"),
+    mod("Testing","tst","TestRun","testing","testing","testing-workbench","Threshold libraries, datasets, test plans, test runs and results. The calculations run in Python through analytics jobs.","Operate team"),
+    mod("Validation","val","ValidationCase","validation","validation","validation-console","Independent validation cases, question scores and findings.","Assurance team"),
+    mod("Approval","apr","ApprovalCase","approval","approval","approval-release","Approval cases, conditions, gate evaluations and deployment records.","Assurance team"),
+    mod("Monitoring","mon","MonitoringPlan","monitoring","monitoring","monitoring","Monitoring plans, runs, metric results, breaches, attestations and health scores.","Operate team"),
+    mod("Issues","iss","Issue","issues","issues","issues-killswitch","Issues, action items, recalibration requests and kill-switch events; BCM fallback plans and recovery tests (bcm schema).","Assurance team"),
+    mod("Artefacts","art","Artefact","artefacts","artefacts","artefacts","Artefacts and versions in the Artefact Store, links to records, evidence packs, retention and disposal.","Operate team"),
+    mod("Reporting","rpt","ModelSummary","reporting","reporting","control-tower","Read models and KPI snapshots behind the Control Tower. The Worker's ProjectionBuilder fills them; this module only reads.","Universe team"),
+    mod("Integration","int","IngestionBatch","integration","integration","data-integration","Connectors, canonical contracts, mapping definitions (maker-checker), ingestion batches and exceptions, scored data, outbound subscriptions.","Operate team",
+      {application:[{n:"Tokenization", t:"dir", k:"app", d:"Customer and account identifiers are tokenized at ingestion, before anything is stored.", kids:[
+        {n:"DataTokenizer.cs", t:"file", k:"app", d:"HMAC-SHA256 with a per-tenant secret from the key adapter. Never plain SHA-256: account numbers, PAN and Aadhaar have so few possible values that plain hashes can be reversed by trying them all.", code:
+`public sealed class DataTokenizer(IKeyAdapter keys) : IDataTokenizer
+{
+    // Produces CustomerToken / AccountToken (char(64)) for int.ScoredTransaction, int.NpaSnapshot, int.EclResult
+    public string Tokenize(Guid tenantId, string value)
+    {
+        var key = keys.GetSecret($"tokenization/{tenantId}");     // never leaves the key adapter's control
+        var bytes = Encoding.UTF8.GetBytes(value.Trim().ToUpperInvariant());
+        return Convert.ToHexStringLower(HMACSHA256.HashData(key, bytes));
+    }
+}`}]}]}),
+    mod("Administration","sec","AppUser","admin","admin","admin-security","Tenants, legal entities and org units (core), users, roles, permissions, role assignments with scope, AD group mappings, SoD rules and exceptions, break-glass activations.","Platform team")
+  ];
+
+  /* ---------- tree ---------- */
+  const TREE = {n:"ModelMint", t:"dir", k:"cmn",
+    d:"Repository root (one Git repo). One .NET solution for the Governance Plane, one Python project for the Analytics Plane, the Angular client, shared contracts, database scripts and the offline installer.",
+    contains:["src/: .NET Host, Worker, Kernel, Modules, Shared, Angular client","analytics/: the Python Analytics service","contracts/: what .NET and Python must agree on","db/: SQL scripts EF Core can't express","installer/: offline signed installer for profiles S / M / L","tests/: architecture, module, kernel and cross-language tests"],
+    kids:[
+    {n:"src", t:"dir", k:"cmn", d:"Governance Plane (.NET 10) and the Angular client.", kids:[
+      {n:"ModelMint.Host", t:"proj", k:"api", owner:"Platform team", deployed:"IIS site (or Windows Service) on every app node",
+        d:"The single ASP.NET Core host (L2). BFF for the Angular client (OIDC, cookie, CSRF), REST API /api/v1 with endpoint filters, the SignalR hub, the Ingestion API, and the gRPC services on an internal mTLS port: AnalyticsJobs for Python nodes, Notifications for the Worker, and ModelGate for client systems (B2B). It is also a gRPC client of the Python nodes and the Worker. It composes the modules but contains no business logic.",
+        refs:["Every module's .Api and registration extension","ModelMint.Kernel","ModelMint.Infrastructure"], never:["Module internals (Domain, Infrastructure)","Business rules"],
         kids:[
-          {n:"Controllers", t:"dir", k:"api", d:"REST endpoints used by the web UI or partners. Each action validates input, calls one BLL method and returns the result.",
-            kids:[{n:N+"Controller.cs", t:"file", k:"api", d:"A thin REST controller. It depends only on the BLL interface.",
-              code:
-`[ApiController]
-[Route("api/${el}s")]
-public class ${N}Controller(I${N}Service service) : ControllerBase
-{
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<${e}Dto>> Get(int id, CancellationToken ct)
-    {
-        var result = await service.GetByIdAsync(id, ct);
-        return result is null ? NotFound() : Ok(result);
-    }
-}`.replace(/\$\{el\}/g,el).replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}]},
-          {n:"GrpcServices", t:"dir", k:"api", d:"gRPC implementations of this service's contract. Other microservices call these. They map proto messages to BLL DTOs and back.",
-            kids:[{n:N+"GrpcService.cs", t:"file", k:"api", d:"Implements the generated base class from "+N+".Contracts and delegates to the BLL.",
-              code:
-`public class ${N}GrpcService(I${N}Service service) : ${N}Grpc.${N}GrpcBase
-{
-    public override async Task<${e}Reply> Get${e}(Get${e}Request request, ServerCallContext context)
-    {
-        var dto = await service.GetByIdAsync(request.Id, context.CancellationToken)
-                  ?? throw new RpcException(new Status(StatusCode.NotFound, "${e} not found"));
-        return dto.ToReply();   // mapping lives in Mappings/
-    }
-}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)},
-            {n:"Mappings", t:"dir", k:"api", d:"Extension methods that convert BLL DTOs to proto messages (ToReply) and back. Keeps proto types out of the BLL."}]},
-          {n:"Middleware", t:"dir", k:"api", d:"Service-specific middleware, if any. Shared middleware (exception handling, correlation id) comes from Common."},
-          {n:"Program.cs", t:"file", k:"api", d:"Composition root: registers every layer, maps controllers and gRPC services.",
-            code:
+          {n:"Program.cs", t:"file", k:"api", d:"Composition root. The order of filters matters: licence, then entitlement, then permission.", code:
 `var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
-builder.Services.AddCommonTelemetry(builder.Configuration, "${N.toLowerCase()}-service");   // Common.Telemetry
-builder.Services.AddGrpc(o => o.AddCommonInterceptors());   // Common.Grpc
-builder.Services.AddCommonJwtAuth(builder.Configuration);   // Common.Auth: re-check the JWT the gateway forwarded
+builder.Services.AddModelMintTelemetry(builder.Configuration, "modelmint-host");  // OpenTelemetry
+builder.Services.AddModelMintPersistence(builder.Configuration);   // shared SqlConnection, tenant context
+builder.Services.AddModelMintKernel();                             // workflow, guards, SoD, ledger, licence
 
-builder.Services.Add${N}Bll();                               // ${N}.BLL/DependencyInjection.cs
-builder.Services.Add${N}Dal(builder.Configuration);          // ${N}.DAL/DependencyInjection.cs
-${calls.map(c=>`builder.Services.AddServiceClient<${c}Grpc.${c}GrpcClient>(builder.Configuration, "Services:${c}");`).join("\n")}
+// Sign-in: the BFF keeps tokens on the server; the browser gets an HttpOnly cookie only
+builder.Services.AddModelMintBff(builder.Configuration);           // OIDC (ADFS / Keycloak / Entra) + LDAP + break-glass
+
+builder.Services
+    .AddIntakeModule().AddRegistryModule().AddTieringModule().AddDevelopmentModule()
+    .AddTestingModule().AddValidationModule().AddApprovalModule().AddMonitoringModule()
+    .AddIssuesModule().AddArtefactsModule().AddReportingModule().AddIntegrationModule()
+    .AddAdministrationModule();
+
+builder.Services.AddSignalR();
+builder.Services.AddModelMintGrpcServer();                         // mTLS, caller identity, deadlines
+builder.Services.AddModelMintGrpcClients(builder.Configuration);   // AnalyticsControl (Python), WorkerControl
 var app = builder.Build();
-app.UseAuthentication();
-app.UseAuthorization();
-app.MapControllers();
-app.MapGrpcService<${N}GrpcService>();
+
+app.UseModelMintBff();                                  // cookie auth + antiforgery for unsafe methods
+
+var api = app.MapGroup("/api/v1")
+    .RequireAuthorization()
+    .AddEndpointFilter<LicenceStateFilter>()            // Read-only licence blocks writes
+    .AddEndpointFilter<EntitlementFilter>();            // module must be in the licensed tier
+api.MapIntakeEndpoints();   api.MapRegistryEndpoints();  api.MapTieringEndpoints();
+/* ... every module ... */
+
+// gRPC on the internal port 9443 only (client certificate required), never the browser port
+app.MapGrpcService<AnalyticsJobsService>().RequireHost("*:9443");   // Python nodes
+app.MapGrpcService<NotificationsService>().RequireHost("*:9443");   // Worker
+app.MapGrpcService<ModelGateService>().RequireHost("*:9443");       // client systems (B2B)
+app.MapHub<NotificationsHub>("/hubs/notifications");
 app.MapHealthChecks("/health");
-app.Run();`.replace(/\$\{N\}/g,N)},
-          {n:"appsettings.json", t:"file", k:"api", d:"Configuration. Connection strings and keys come from environment variables or a secret store in real environments.",
-            code:
+app.Run();`},
+          {n:"Bff", t:"dir", k:"api", d:"Login, logout, /bff/user and session handling. Tokens from the identity provider stay on the server; the Angular client only ever holds a session cookie. Works with any OIDC provider (ADFS, Keycloak, Entra ID) or LDAP bind.", kids:[
+            {n:"BffExtensions.cs", t:"file", k:"api", d:"Cookie + OIDC setup, with LDAP and break-glass as alternative sign-in paths."}]},
+          {n:"Filters", t:"dir", k:"api", d:"Endpoint filters applied to every API route.", kids:[
+            {n:"LicenceStateFilter.cs", t:"file", k:"api", d:"Blocks writes when the licence is Read-only, and everything when it is Invalid.", code:
+`public sealed class LicenceStateFilter(ILicenceService licence) : IEndpointFilter
+{
+    public async ValueTask<object?> InvokeAsync(EndpointFilterInvocationContext ctx, EndpointFilterDelegate next)
+    {
+        var state = licence.CurrentState;                  // cached; re-verified daily by the Worker
+        var isWrite = !HttpMethods.IsGet(ctx.HttpContext.Request.Method);
+
+        if (state is LicenceState.Invalid || (state is LicenceState.ReadOnly && isWrite))
+            return TypedResults.Problem("The licence does not allow this action.", statusCode: 403);
+
+        return await next(ctx);
+    }
+}`},
+            {n:"EntitlementFilter.cs", t:"file", k:"api", d:"Checks the route's entitlement key (for example approval-release) against the licensed tier: Core, Professional or Enterprise."},
+            {n:"PermissionRequirement.cs", t:"file", k:"api", d:"RequirePermission(\"approval.decide\"): RBAC plus scope (legal entity, org unit) from sec.RoleAssignment. Record-level checks happen in the Application handler."}]},
+          {n:"Grpc", t:"dir", k:"api", d:"gRPC services the Host serves, and the clients it uses. All on the internal port 9443 with mTLS; the browser never reaches this port.", kids:[
+            {n:"AnalyticsJobsService.cs", t:"file", k:"api", d:"Python nodes call this to lease jobs and return results. A result is recorded only after its signature and artefact hashes check out.", code:
+`// modelmint.jobs.v1.AnalyticsJobs - called by Python analytics nodes
+public sealed class AnalyticsJobsService(IJobQueue queue, IJobTokenIssuer tokens, IJobResultRecorder recorder)
+    : AnalyticsJobs.AnalyticsJobsBase
+{
+    public override async Task<LeaseResponse> Lease(LeaseRequest req, ServerCallContext ctx)
+    {
+        var job = await queue.LeaseNextAsync(req.WorkerId, TimeSpan.FromMinutes(2), ctx.CancellationToken);
+        if (job is null) return new LeaseResponse();                                   // nothing queued
+        return new LeaseResponse { Job = job.ToProto(), JobToken = tokens.Issue(job) }; // Ed25519-signed
+    }
+
+    public override async Task<Ack> Heartbeat(HeartbeatRequest req, ServerCallContext ctx)
+    {
+        await queue.ExtendLeaseAsync(Guid.Parse(req.JobId), ctx.CancellationToken);
+        return new Ack();
+    }
+
+    public override async Task<Ack> Submit(SignedResultEnvelope env, ServerCallContext ctx)
+    {
+        if (!await recorder.VerifyAndRecordAsync(env, ctx.CancellationToken))
+            throw new RpcException(new Status(StatusCode.InvalidArgument, "Signature or artefact hash mismatch"));
+        return new Ack();
+    }
+
+    public override async Task<Ack> Fail(JobFailure f, ServerCallContext ctx)
+    {
+        await queue.FailAsync(Guid.Parse(f.JobId), f.Reason, f.Retryable, ctx.CancellationToken);
+        return new Ack();
+    }
+}`},
+            {n:"ModelGateService.cs", t:"file", k:"api", d:"B2B for client systems: check whether a model version may be used, get kill-switch and status changes pushed as they happen, and stream scored records in. Uses module contracts, so the rules stay in the modules.", code:
+`// modelmint.gate.v1.ModelGate - called by client systems, authenticated per connector
+public sealed class ModelGateService(IRegistryModule registry, IStatusFeed feed, IIntegrationModule integration)
+    : ModelGate.ModelGateBase
+{
+    // "May I use this model version right now?" - answered from the registry read model
+    public override async Task<GateDecision> CheckGate(GateRequest req, ServerCallContext ctx)
+    {
+        var s = await registry.GetUsageStatusAsync(req.ModelCode, req.VersionLabel, ctx.CancellationToken);
+        return new GateDecision { Allowed = s.IsUsable, UsageStatus = s.Name, Reason = s.Reason };
+    }
+
+    // Server streaming: push kill switch / restriction / version changes for this connector's models
+    public override async Task WatchStatus(WatchRequest req, IServerStreamWriter<StatusChange> stream,
+                                           ServerCallContext ctx)
+    {
+        await foreach (var change in feed.SubscribeAsync(ctx.GetConnectorId(), req.ModelCodes, ctx.CancellationToken))
+            await stream.WriteAsync(change.ToProto());
+    }
+
+    // Client streaming: scored records in, one receipt out (same checks as file and REST ingestion)
+    public override async Task<BatchReceipt> SubmitScores(IAsyncStreamReader<ScoredRecord> records,
+                                                          ServerCallContext ctx)
+    {
+        var batch = await integration.OpenBatchAsync(ctx.GetConnectorId(), ctx.CancellationToken);
+        await foreach (var r in records.ReadAllAsync(ctx.CancellationToken))
+            await batch.AddAsync(r.ToCanonical(), ctx.CancellationToken);       // customer id tokenized here
+        return (await batch.CloseAsync(ctx.CancellationToken)).ToProto();       // control totals, rejects
+    }
+}`},
+            {n:"NotificationsService.cs", t:"file", k:"api", d:"The Worker calls Publish after handling an outbox event, and this Host node pushes the change to its connected SignalR users. With 2+ nodes the Worker calls every node, so no SignalR backplane is needed for these events."},
+            {n:"Clients", t:"dir", k:"api", d:"gRPC clients the Host uses: AnalyticsControl (cancel a job on a Python node, check health, list installed packs) and WorkerControl (operations console actions)."}]},
+          {n:"Hubs", t:"dir", k:"api", d:"SignalR NotificationsHub for live inbox and Control Tower updates. Profiles M and L need sticky sessions and a backplane."},
+          {n:"appsettings.json", t:"file", k:"api", d:"Identity provider, LDAP, the public and internal (gRPC, mTLS) endpoints, allowed gRPC callers and telemetry. The Kestrel endpoints apply when the Host runs as a Windows Service; under IIS (Windows Server 2022+ for gRPC) the same ports are IIS bindings. Secrets are references to the key adapter, never values.", code:
 `{
-  "ConnectionStrings": {
-    "${N}Db": "Server=sql;Database=CompanyDb;User Id=${schema}_svc;..."
+  "Authentication": {
+    "Mode": "Oidc",                                   // Oidc | Ldap; break-glass is always available
+    "Oidc": {
+      "Authority": "https://adfs.bank.local/adfs",     // or a Keycloak realm, or an Entra ID tenant
+      "ClientId": "modelmint",
+      "ClientSecretRef": "keyadapter:oidc-client-secret",
+      "GroupsClaim": "groups"                         // mapped to roles via sec.DirectoryGroupMapping
+    },
+    "Ldap": { "Server": "ldaps://dc01.bank.local", "BaseDn": "DC=bank,DC=local" }
   },
-  "Services": {
-${calls.length?calls.map(c=>`    "${c}": { "Address": "https://${c.toLowerCase()}-service:8443" }`).join(",\n"):"    // this service calls no other services"}
-  }
-}`.replace(/\$\{N\}/g,N)},
-          {n:"Dockerfile", t:"file", k:"cmn", d:"Builds a container image for this service only. The build context is the repo root so it can copy Common and Contracts."}
+  "Kestrel": {
+    "Endpoints": {
+      "Public":   { "Url": "https://*:443" },                // browser: BFF + /api/v1
+      "Internal": {                                         // gRPC only, never exposed outside
+        "Url": "https://*:9443",
+        "Protocols": "Http2",
+        "ClientCertificateMode": "RequireCertificate"       // mTLS
+      }
+    }
+  },
+  "Grpc": {
+    "AllowedCallers": {                                     // certificate thumbprint -> caller role
+      "<analytics node 1>": "AnalyticsWorker",
+      "<worker node 1>":    "Worker"
+    },
+    "AnalyticsNodes": [ "https://analytics01.bank.local:9444" ],
+    "Worker": "https://app01.bank.local:9445"
+  },
+  "Telemetry": { "OtlpEndpoint": "http://localhost:4317" }
+}`}
         ]},
-      {n:N+".BLL", t:"proj", k:"bll", owner,
-        d:`Class library with the business logic of ${N}. ${bllNote} It knows nothing about HTTP, gRPC or SQL.`,
-        refs:[N+".DAL (repository interfaces)", ...callRefs.map(c=>c+" (generated gRPC clients)"), "Common.Core"],
-        never:[N+".API","EF Core / SqlClient directly","Another service's BLL or DAL"],
+      {n:"ModelMint.Worker", t:"proj", k:"api", owner:"Platform team", deployed:"Windows Service on every app node (Quartz clustering makes timers fire once)",
+        d:"Background processing (Windows Service). Everything that shouldn't happen inside a user's request: the outbox, timers and SLAs, ingestion, read-model projections, the global ledger chain, daily digests, SIEM forwarding and business health checks. Over gRPC it serves WorkerControl (for the operations console) and calls each Host node's Notifications service and the Python nodes' AnalyticsControl.",
+        refs:["ModelMint.Kernel","ModelMint.Infrastructure","Module registration extensions"], never:["HTTP endpoints for users"],
         kids:[
-          {n:"Interfaces", t:"dir", k:"bll", d:"Public service interfaces that the API layer depends on.",
-            kids:[{n:"I"+N+"Service.cs", t:"file", k:"bll", d:"The contract the API calls.",
-              code:
-`public interface I${N}Service
+          {n:"Program.cs", t:"file", k:"api", d:"Hosted services and clustered Quartz jobs.", code:
+`var builder = WebApplication.CreateBuilder(args);          // a web host only to serve internal gRPC
+builder.Host.UseWindowsService(o => o.ServiceName = "ModelMint Worker");
+builder.Services.AddModelMintTelemetry(builder.Configuration, "modelmint-worker");
+builder.Services.AddModelMintPersistence(builder.Configuration);
+builder.Services.AddModelMintKernel();
+
+builder.Services.AddHostedService<OutboxDispatcher>();     // int.OutboxMessage -> notifications, webhooks, SignalR
+builder.Services.AddHostedService<GlobalChainBuilder>();   // appends the global hash chain in order
+builder.Services.AddHostedService<ProjectionBuilder>();    // rpt.ModelSummary, rpt.KpiSnapshot
+builder.Services.AddHostedService<IngestionProcessor>();   // watch folders, SFTP, DB pull
+builder.Services.AddHostedService<SiemForwarder>();        // aud.AuditEvent -> SIEM
+
+builder.Services.AddQuartz(q =>                            // timers & SLAs, daily digest, licence re-check
 {
-    Task<${e}Dto?> GetByIdAsync(int id, CancellationToken ct = default);
-    Task<IReadOnlyList<${e}Dto>> ListAsync(int customerId, CancellationToken ct = default);
-    Task<Result<int>> CreateAsync(Create${e}Request request, CancellationToken ct = default);
-}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}]},
-          {n:"Services", t:"dir", k:"bll", d:"Implementations of the interfaces: business rules, workflows, calls to repositories and to other services.",
-            kids:[{n:N+"Service.cs", t:"file", k:"bll", d:"Business logic. Depends on repository interfaces"+(calls.length?" and gRPC clients for "+calls.join(" and ")+".":"."),
-              code:
-`public class ${N}Service(I${e}Repository repo${calls.map(c=>`, ${c}Grpc.${c}GrpcClient ${c.toLowerCase()}Client`).join("")}) : I${N}Service
-{
-    public async Task<${e}Dto?> GetByIdAsync(int id, CancellationToken ct = default)
+    q.UsePersistentStore(s =>
     {
-        var entity = await repo.GetByIdAsync(id, ct);
-        return entity?.ToDto();
+        s.UseSqlServer(builder.Configuration.GetConnectionString("ModelMint")!);
+        s.UseClustering();                                 // with 2+ nodes, each job fires on one node only
+    });
+});
+builder.Services.AddQuartzHostedService();
+
+builder.Services.AddModelMintGrpcServer();                        // internal mTLS port 9445 only
+builder.Services.AddModelMintGrpcClients(builder.Configuration);  // Notifications (Host nodes), AnalyticsControl
+
+var app = builder.Build();
+app.MapGrpcService<WorkerControlService>();                       // called by the Host's operations console
+app.Run();`},
+          {n:"Grpc", t:"dir", k:"api", d:"The Worker is both a gRPC server and a gRPC client.", kids:[
+            {n:"WorkerControlService.cs", t:"file", k:"api", d:"modelmint.worker.v1.WorkerControl: the Host's operations console asks the Worker to run ingestion now, verify the ledger chain, or report its backlog.", code:
+`public sealed class WorkerControlService(IIngestionRunner ingestion, IChainVerifier verifier, IBacklogProbe backlog)
+    : WorkerControl.WorkerControlBase
+{
+    public override async Task<Ack> TriggerIngestion(TriggerRequest req, ServerCallContext ctx)
+    {
+        await ingestion.RunNowAsync(Guid.Parse(req.ConnectorId), ctx.CancellationToken);
+        return new Ack();
     }
 
-    public async Task<Result<int>> CreateAsync(Create${e}Request request, CancellationToken ct = default)
-    {
-        // business rules live here
-        if (request.CustomerId <= 0) return Result.Fail<int>("Customer is required");
-${calls.length?`        // data owned by another service comes over gRPC, never from its tables
-        var other = await ${calls[0].toLowerCase()}Client.GetAsync(new() { Id = request.CustomerId },
-                        deadline: DateTime.UtcNow.AddSeconds(5), cancellationToken: ct);
-`:""}        var id = await repo.AddAsync(request.ToEntity(), ct);
-        return Result.Ok(id);
-    }
-    // ...
-}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}]},
-          ...extraBll,
-          {n:"Models", t:"dir", k:"bll", d:"DTOs and request models passed between API and BLL, e.g. "+e+"Dto, Create"+e+"Request. Never EF entities."},
-          {n:"Validators", t:"dir", k:"bll", d:"Input validation rules (for example FluentValidation validators) for the request models."},
-          {n:"Mappings", t:"dir", k:"bll", d:"Entity ↔ DTO mapping (manual extension methods or Mapster/AutoMapper profiles)."},
-          {n:"DependencyInjection.cs", t:"file", k:"bll", d:"One extension method that registers everything in this library, so Program.cs stays short.",
-            code:
-`public static class DependencyInjection
-{
-    public static IServiceCollection Add${N}Bll(this IServiceCollection services)
-    {
-        services.AddScoped<I${N}Service, ${N}Service>();
-        // validators, mappers...
-        return services;
-    }
-}`.replace(/\$\{N\}/g,N)}
+    public override async Task<ChainReport> VerifyChain(VerifyRequest req, ServerCallContext ctx) =>
+        (await verifier.VerifyAsync(req.FromSequenceNo, req.ToSequenceNo, ctx.CancellationToken)).ToProto();
+
+    public override async Task<Backlog> GetBacklog(Empty req, ServerCallContext ctx) =>
+        (await backlog.ReadAsync(ctx.CancellationToken)).ToProto();
+}`},
+            {n:"NotificationsClient.cs", t:"file", k:"api", d:"After handling an outbox event, calls Notifications.Publish on every Host node (addresses from configuration) so all connected users see the change."}]},
+          {n:"Outbox", t:"dir", k:"api", d:"OutboxDispatcher: reads committed int.OutboxMessage rows and delivers them (module events, notifications, webhooks). Retries with back-off; dead-letters after N attempts."},
+          {n:"Ledger", t:"dir", k:"ker", d:"GlobalChainBuilder (global chain in a separate append-only table), DigestExporter (daily signed digest + SQL Server database ledger digest, WORM/SIEM export), ChainVerifier."},
+          {n:"Projections", t:"dir", k:"api", d:"ProjectionBuilder: keeps rpt read models up to date from outbox events."},
+          {n:"Ingestion", t:"dir", k:"api", d:"IngestionProcessor: picks up files and DB pulls, runs envelope checks (auth, checksum, duplicate, late), then hands content checks to Python as analytics jobs."},
+          {n:"Checks", t:"dir", k:"api", d:"Business health checks: late feeds, chain verification, licence expiry, job backlog. Results go to telemetry and the operations console."}
         ]},
-      {n:N+".DAL", t:"proj", k:"dal", owner,
-        d:`Class library for data access. It owns the "${schema}" schema: EF Core DbContext, entity classes, repositories and migrations.`,
-        refs:["Common.DAL (base repository, audit fields)","Common.Core","EF Core / Dapper"],
-        never:[N+".BLL or "+N+".API","Tables in any other schema"],
+      {n:"ModelMint.Kernel", t:"proj", k:"ker", owner:"Platform team", deployed:"Part of Host and Worker",
+        d:"The Governed Record Kernel (L3 + L5). Shared engines every module uses: workflow with pinned state machines, transition guards, forms, evidence, tasks, timers, SoD, policy engine, LedgerWriter, licence and entitlement services, and the analytics job queue. Owns schemas wf, frm, pol, ldg, lic, aud, ntf and ana.",
+        refs:["ModelMint.SharedKernel","ModelMint.Contracts","NSec.Cryptography (Ed25519)"], never:["Any module (modules depend on the Kernel, never the reverse)"],
         kids:[
-          {n:"Entities", t:"dir", k:"dal", d:"Table-mapped classes. They stay inside the DAL and BLL; the API never returns them.",
-            kids:[{n:e+".cs", t:"file", k:"dal", d:"Entity for the "+schema+"."+e+"s table.",
-              code:
-`public class ${e} : AuditableEntity        // Common.DAL: CreatedOn, CreatedBy, ModifiedOn...
+          {n:"Records", t:"dir", k:"ker", d:"GovernedRecord base class.", kids:[
+            {n:"GovernedRecord.cs", t:"file", k:"ker", d:"Base for every record that has a lifecycle and a ledger stream.", code:
+`public abstract class GovernedRecord : Entity
 {
-    public int Id { get; set; }
-    public int CustomerId { get; set; }
-    public string Name { get; set; } = "";
-    public bool IsActive { get; set; }
-}`.replace(/\$\{e\}/g,e)}]},
-          {n:"Configurations", t:"dir", k:"dal", d:"IEntityTypeConfiguration classes: table names, keys, indexes, column lengths."},
-          {n:"Repositories", t:"dir", k:"dal", d:"Repository interfaces and implementations used by the BLL.",
-            kids:[{n:"I"+e+"Repository.cs", t:"file", k:"dal", d:"Interface the BLL depends on (so the BLL can be tested with a mock).",
-              code:
-`public interface I${e}Repository : IRepository<${e}>     // Common.DAL generic base
-{
-    Task<IReadOnlyList<${e}>> ListByCustomerAsync(int customerId, CancellationToken ct);
-}`.replace(/\$\{e\}/g,e)},
-              {n:e+"Repository.cs", t:"file", k:"dal", d:"EF Core implementation.",
-              code:
-`public class ${e}Repository(${N}DbContext db) : Repository<${e}>(db), I${e}Repository
-{
-    public async Task<IReadOnlyList<${e}>> ListByCustomerAsync(int customerId, CancellationToken ct) =>
-        await db.${e}s.AsNoTracking()
-                       .Where(x => x.CustomerId == customerId && x.IsActive)
-                       .ToListAsync(ct);
-}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}]},
-          {n:N+"DbContext.cs", t:"file", k:"dal", d:`EF Core context pinned to the "${schema}" schema.`,
-            code:
-`public class ${N}DbContext(DbContextOptions<${N}DbContext> options) : DbContext(options)
-{
-    public DbSet<${e}> ${e}s => Set<${e}>();
+    public string State { get; private set; } = "";
+    public Guid LedgerStreamId { get; internal set; }
+    public Guid WorkflowInstanceId { get; internal set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    // Only the WorkflowEngine changes State, after guards and SoD have passed
+    internal void MoveTo(string newState) => State = newState;
+}`}]},
+          {n:"Workflow", t:"dir", k:"ker", d:"WorkflowEngine (pinned definition versions from wf.WorkflowDefinition), GuardEvaluator, TaskService, TimerService. Each transition writes wf.StateTransition with the guard results and its ledger snapshot id."},
+          {n:"Sod", t:"dir", k:"ker", d:"SodService: evaluates sec.SodRule (from policy packs) against the actor and the record's parties; logs every decision to sec.SodDecisionLog; honours approved SodException rows."},
+          {n:"Policy", t:"dir", k:"ker", d:"Policy Engine: scorecards, grids, gates and matrices loaded from signed, versioned policy packs (pol schema)."},
+          {n:"Forms", t:"dir", k:"ker", d:"FormService: JSON-schema forms (frm.FormDefinition), submissions and completeness."},
+          {n:"Ledger", t:"dir", k:"ker", d:"LedgerWriter and the canonical hasher. Writes happen in the caller's transaction.", kids:[
+            {n:"LedgerWriter.cs", t:"file", k:"ker", d:"Appends a snapshot to a record's stream with the per-stream hash. The global chain is added afterwards by the Worker, so writes don't all queue on one row.", code:
+`public sealed class LedgerWriter(KernelDbContext db, ICanonicalHasher hasher, IClock clock)
+{
+    // Runs inside the module's transaction: the domain change and its ledger entry commit together
+    public async Task<LedgerSnapshot> AppendAsync(Guid streamId, string eventType, object payload,
+                                                  ActorRef actor, CancellationToken ct)
     {
-        modelBuilder.HasDefaultSchema("${schema}");
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(${N}DbContext).Assembly);
+        var stream = await db.LedgerStreams.FindAsync([streamId], ct)
+                     ?? throw new InvalidOperationException($"Unknown ledger stream {streamId}");
+
+        var snapshot = new LedgerSnapshot
+        {
+            LedgerStreamId   = streamId,
+            StreamSequenceNo = stream.LastSequenceNo + 1,
+            EventType        = eventType,
+            PayloadJson      = hasher.Canonicalize(payload),       // RFC 8785, see contracts/hashing
+            OccurredAtUtc    = clock.UtcNow,
+            ActorType        = actor.Type,
+            Actor            = actor.Name,
+            PrevStreamHash   = stream.LastSnapshotHash,
+        };
+        snapshot.SnapshotHash = hasher.Sha256Hex(snapshot.HashInput());
+
+        stream.LastSequenceNo   = snapshot.StreamSequenceNo;      // RowVersion stops two writers racing
+        stream.LastSnapshotHash = snapshot.SnapshotHash;
+        db.LedgerSnapshots.Add(snapshot);                          // append-only table
+        return snapshot;
     }
-}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)},
-          {n:"Migrations", t:"dir", k:"dal", d:"EF Core migrations for this schema only. Each service migrates independently, e.g. dotnet ef migrations add Init -p "+N+".DAL -s "+N+".API."},
-          {n:"DependencyInjection.cs", t:"file", k:"dal", d:"Registers the DbContext and repositories.",
-            code:
-`public static IServiceCollection Add${N}Dal(this IServiceCollection services, IConfiguration config)
+}`},
+            {n:"CanonicalHasher.cs", t:"file", k:"ker", d:"Must produce exactly the same bytes and hashes as analytics/mm_ledger/hashing.py; both are tested against contracts/hashing/test-vectors.json.", code:
+`public sealed class CanonicalHasher : ICanonicalHasher
 {
-    services.AddDbContext<${N}DbContext>(o => o.UseSqlServer(config.GetConnectionString("${N}Db")));
-    services.AddScoped<I${e}Repository, ${e}Repository>();
-    return services;
-}`.replace(/\$\{N\}/g,N).replace(/\$\{e\}/g,e)}
-        ]}
-    ]};
-  }
+    public string Canonicalize(object value) => JsonCanonicalizer.Serialize(value);   // RFC 8785 (JCS)
 
-  function contract(N, schema, rpcs){
-    return {n:N+".Contracts", t:"proj", k:"ctr", owner:N+" team (consumers review changes)",
-      d:`Class library that holds ${N}'s .proto files and generates the C# messages, the server base class and the client. ${N}.API references it as a server; any service that calls ${N} references it as a client.`,
-      refs:["Grpc.Tools, Google.Protobuf, Grpc.Net.Client (packages only)"],
-      never:["Any service project","Business logic"],
-      kids:[{n:"Protos", t:"dir", k:"ctr", d:"Proto files grouped by version, so a breaking change can ship as v2 while v1 keeps working.",
-        kids:[{n:schema, t:"dir", k:"ctr", d:"Package folder for "+N+".", kids:[{n:"v1", t:"dir", k:"ctr", d:"Version 1 of the contract.",
-          kids:[{n:schema+".proto", t:"file", k:"ctr", d:"The contract. Add fields with new numbers only; never renumber or reuse.",
-            code:
-`syntax = "proto3";
-option csharp_namespace = "${N}.Contracts.V1";
-package ${schema}.v1;
+    public string Sha256Hex(string canonical) =>
+        Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
+}`}]},
+          {n:"Licensing", t:"dir", k:"ker", d:"Product licence for this installation: installation identity, activation request, certificate verification, entitlements, metering and signed usage reports.", kids:[
+            {n:"LicenceVerifier.cs", t:"file", k:"ker", d:"Checks the IAL-signed certificate (Ed25519). Nothing here is encrypted or secret: the public key ships with the installer, and the HSM private key never leaves IAL.", code:
+`public sealed class LicenceVerifier(IalPublicKeys keys, IClock clock)
+{
+    public LicenceState Verify(LicenceCertificate cert, InstallationIdentity installation)
+    {
+        var key = keys.Get(cert.KeyId);                                // supports key rotation
+        if (!SignatureAlgorithm.Ed25519.Verify(key, cert.SignedBytes, cert.Signature))
+            return LicenceState.Invalid;
+        if (cert.InstallationId != installation.InstallationId)
+            return LicenceState.Invalid;
 
-service ${N}Grpc {
-${rpcs.map(r=>"  rpc "+r+";").join("\n")}
-}
-
-message Get${N}Request { int32 id = 1; }
-// ... messages`.replace(/\$\{N\}/g,N)}]}]}]},
-        {n:N+".Contracts.csproj", t:"file", k:"ctr", d:"Generates both client and server code. Can be packed as a NuGet package for partners or other repos.",
-          code:
+        var today = DateOnly.FromDateTime(clock.UtcNow);
+        if (today < cert.NotBefore)                         return LicenceState.Invalid;
+        if (today <= cert.NotAfter.AddDays(-30))            return LicenceState.Valid;
+        if (today <= cert.NotAfter)                         return LicenceState.Expiring;
+        if (today <= cert.NotAfter.AddDays(cert.GraceDays)) return LicenceState.Grace;
+        return LicenceState.ReadOnly;
+    }
+}`},
+            {n:"EntitlementService.cs", t:"file", k:"ker", d:"Answers 'is feature X licensed?' for endpoint filters, job tokens and policy/test packs, from lic.LicenceEntitlement."},
+            {n:"MeteringService.cs", t:"file", k:"ker", d:"Daily lic.UsageSnapshot (named users, active models, legal entities), signed for true-up."}]},
+          {n:"Jobs", t:"dir", k:"ker", d:"The analytics job queue (ana schema) behind the Job API: leasing, heartbeats, retries, job tokens, result verification.", kids:[
+            {n:"JobQueue.sql", t:"file", k:"ker", d:"How a lease is taken: READPAST skips rows other workers are leasing, so each job goes to exactly one node.", code:
+`WITH next AS (
+    SELECT TOP (1) *
+    FROM   ana.AnalyticsJob WITH (ROWLOCK, READPAST, UPDLOCK)
+    WHERE  Status = 'Queued'
+       OR (Status = 'Leased' AND LeaseExpiresAtUtc < SYSUTCDATETIME())   -- abandoned lease
+    ORDER  BY Priority DESC, QueuedAtUtc
+)
+UPDATE next
+SET    Status = 'Leased',
+       LeaseOwner = @workerId,
+       LeaseExpiresAtUtc = DATEADD(second, 120, SYSUTCDATETIME()),
+       Attempts = Attempts + 1
+OUTPUT inserted.*;`},
+            {n:"JobResultRecorder.cs", t:"file", k:"ker", d:"Verifies the node's Ed25519 signature and every artefact hash, then records the result, the module's rows and the ledger entry in one transaction."}]}
+        ]},
+      {n:"Modules", t:"dir", k:"app", d:"The 13 domain modules (L4). Each module is four projects: Domain, Application, Infrastructure and Api. Modules talk to each other only through ModelMint.Contracts.", kids:MODULES},
+      {n:"Shared", t:"dir", k:"cmn", d:"Code shared by the Host, Worker, Kernel and modules. Plumbing only: no business rules.", kids:[
+        {n:"ModelMint.SharedKernel", t:"proj", k:"cmn", owner:"Platform team", d:"The smallest shared building blocks: Entity base (with the columns every table has), Result, DomainException, ITenantContext, IClock, ActorRef.",
+          refs:["Nothing (pure .NET)"], never:["EF Core, ASP.NET Core","Any module"],
+          kids:[{n:"Entity.cs", t:"file", k:"cmn", d:"The columns every ModelMint table has (see the ER diagrams).", code:
+`public abstract class Entity
+{
+    public Guid Id { get; protected set; } = Guid.CreateVersion7();   // time-ordered: friendly to clustered indexes
+    public Guid TenantId { get; set; }
+    public Guid? LegalEntityId { get; set; }
+    public DateTime CreatedAtUtc { get; set; }
+    public string CreatedBy { get; set; } = "";
+    public DateTime? ModifiedAtUtc { get; set; }
+    public string? ModifiedBy { get; set; }
+    public byte[] RowVersion { get; set; } = [];                       // optimistic concurrency
+}`}]},
+        {n:"ModelMint.Contracts", t:"proj", k:"cmn", owner:"Platform team (owning module reviews changes)", d:"How modules reach each other: one public interface per module (for example IRegistryModule.GetVersionAsync) and integration events published through the outbox (for example ModelVersionApproved). This is the only cross-module reference allowed.",
+          refs:["ModelMint.SharedKernel"], never:["Any module's implementation"]},
+        {n:"ModelMint.Contracts.Grpc", t:"proj", k:"cmn", owner:"Platform team + Analytics team",
+          d:"Generated C# for every .proto in contracts/protos: messages, server base classes and clients. The Host, the Worker and the .NET client SDK reference it. No hand-written code.",
+          refs:["Google.Protobuf, Grpc.Net.Client, Grpc.AspNetCore.Server, Grpc.Tools (build only)"], never:["Hand-written logic"],
+          kids:[{n:"ModelMint.Contracts.Grpc.csproj", t:"file", k:"cmn", d:"Points at the shared protos, so C# and Python always come from the same files.", code:
 `<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" />
@@ -667,436 +1000,537 @@ message Get${N}Request { int32 id = 1; }
     <PackageReference Include="Grpc.Tools" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Protobuf Include="Protos\\**\\*.proto" GrpcServices="Both" />
+    <!-- one source of truth, shared with Python and the client SDKs -->
+    <Protobuf Include="..\\..\\..\\contracts\\protos\\**\\*.proto"
+              ProtoRoot="..\\..\\..\\contracts\\protos" GrpcServices="Both" />
   </ItemGroup>
-</Project>`}]};
-  }
-
-  const TREE = {n:"CompanySolution", t:"dir", k:"cmn", d:"Repository root. One Git repo (monorepo) holds every service, the shared contracts and libraries, tests and deployment files. Each service is still built and deployed on its own.",
-    contains:["src/ — all production code","tests/ — test projects, one set per service","deploy/ — docker-compose and Kubernetes files","Shared build settings at the root"],
-    kids:[
-    {n:"src", t:"dir", k:"cmn", d:"All production code, split into Gateway, Services, Contracts and Common.", kids:[
-      {n:"Gateway", t:"dir", k:"gw", d:"The single public entry point. Browsers and partners never call a service directly; every request comes through here first.", kids:[
-        {n:"ApiGateway", t:"proj", k:"gw", owner:"Platform / Auth team",
-          d:"ASP.NET Core project running the YARP reverse proxy. For every request it validates the company AD (Microsoft Entra ID) token, rejects users disabled in this app, checks that the user has the permission the route needs (using the shared cache), applies rate limits, and then forwards the request to the right service. It has no business logic and no database.",
-          refs:["Common.Auth (JWT setup, permission policies)","Common.Caching (HybridCache + Redis)","Auth.Contracts (gRPC client, used only on a cache miss)","Common.Telemetry","Yarp.ReverseProxy"],
-          never:["Any service's BLL or DAL","Data-level rules such as 'may this user see this customer's licenses?' (those stay in the service BLL)"],
+</Project>`}]},
+        {n:"ModelMint.Infrastructure", t:"proj", k:"inf", owner:"Platform team", d:"Shared technical plumbing: the DbContext base with tenant filters and audit columns, the unit of work that puts every context in one transaction, the outbox, OpenTelemetry setup, key adapters and crypto helpers.",
+          refs:["ModelMint.SharedKernel","EF Core SQL Server","OpenTelemetry","NSec.Cryptography"], never:["Business rules"],
           kids:[
-            {n:"Program.cs", t:"file", k:"gw", d:"The order of the middleware matters: authenticate, check revocation, authorize, rate limit, then proxy.", code:
-`var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddCommonTelemetry(builder.Configuration, "api-gateway");   // traces, metrics, logs
-builder.Services.AddCommonCaching(builder.Configuration);        // HybridCache: memory (L1) + Redis (L2)
-
-// 1. Authentication: validate the company AD (Microsoft Entra ID) access token locally
-//    (signature, issuer, audience, expiry). Entra's signing keys are cached; no call to AD per request.
-builder.Services.AddCommonJwtAuth(builder.Configuration);         // Common.Auth
-
-// 2. Authorization: each route names a permission ("perm:dashboard.view").
-builder.Services.AddPermissionPolicies();                         // Common.Auth
-builder.Services.AddScoped<IPermissionProvider, PermissionProvider>();
-builder.Services.AddServiceClient<AuthGrpc.AuthGrpcClient>(builder.Configuration, "Services:Auth");
-
-builder.Services.AddRateLimiter(o => o.AddFixedWindowLimiter("per-user", l =>
+            {n:"Persistence", t:"dir", k:"inf", d:"DbContext base and unit of work.", kids:[
+              {n:"ModelMintDbContext.cs", t:"file", k:"inf", d:"Base for every module's DbContext: tenant and legal-entity query filters, audit columns, RowVersion. SQL Server row-level security backs the filters up.", code:
+`public abstract class ModelMintDbContext(DbContextOptions options, ITenantContext tenant) : DbContext(options)
 {
-    l.PermitLimit = 100;
-    l.Window = TimeSpan.FromMinutes(1);
-}));
-
-// 3. Reverse proxy: routes, required permissions and service addresses come from appsettings.json
-builder.Services.AddReverseProxy()
-    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
-
-var app = builder.Build();
-app.UseCorrelationId();                              // Common.Telemetry
-app.UseAuthentication();                             // 401 if the token is invalid or expired
-app.UseMiddleware<BlockedUserMiddleware>();          // 401 if the user is disabled in this app
-app.UseAuthorization();                              // 403 if the permission is missing
-app.UseRateLimiter();                                // 429 if too many requests
-app.MapReverseProxy();
-app.MapHealthChecks("/health");
-app.Run();`},
-            {n:"Authorization", t:"dir", k:"gw", d:"Loads a user's permissions through the shared cache. The policy and handler themselves live in Common.Auth so services can reuse them.", kids:[
-              {n:"PermissionProvider.cs", t:"file", k:"cache", d:"Looks in memory first, then Redis, and calls Auth over gRPC only when both are empty. At most one Auth call per user every 10 minutes, shared by all gateway instances.", code:
-`public class PermissionProvider(HybridCache cache, AuthGrpc.AuthGrpcClient auth) : IPermissionProvider
-{
-    public async Task<IReadOnlySet<string>> GetPermissionsAsync(string userId, CancellationToken ct)
+    protected override void OnModelCreating(ModelBuilder b)
     {
-        var permissions = await cache.GetOrCreateAsync(
-            CacheKeys.UserPermissions(userId),                // "perm:{userId}"
-            async token =>
-            {
-                // Runs only on a cache miss (memory and Redis both empty)
-                var reply = await auth.GetPermissionsAsync(new() { UserId = userId },
-                                deadline: DateTime.UtcNow.AddSeconds(3), cancellationToken: token);
-                return reply.Permissions.ToArray();
-            },
-            CacheOptions.Permissions,                         // 10 min in Redis, 1 min in memory
-            tags: [CacheKeys.UserTag(userId)],                // lets Auth clear it on a role change
-            cancellationToken: ct);
-
-        return permissions.ToHashSet();
-    }
-}`}]},
-            {n:"Middleware", t:"dir", k:"gw", d:"Gateway-only middleware.", kids:[
-              {n:"BlockedUserMiddleware.cs", t:"file", k:"cache", d:"An AD access token stays valid until it expires (about an hour). If a user is disabled in this app before then, Auth adds them to a Redis block list, and this check rejects them straight away.", code:
-`public class BlockedUserMiddleware(RequestDelegate next, IConnectionMultiplexer redis)
-{
-    public async Task InvokeAsync(HttpContext context)
-    {
-        var userId = context.User.GetObjectId();                     // AD object id (oid claim)
-        if (userId is not null && await redis.GetDatabase().KeyExistsAsync(CacheKeys.BlockedUser(userId)))
+        foreach (var type in b.Model.GetEntityTypes().Where(t => typeof(Entity).IsAssignableFrom(t.ClrType)))
         {
-            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-            return;
+            // Every query is limited to the signed-in user's tenant
+            b.Entity(type.ClrType).HasQueryFilter(TenantFilter.For(type.ClrType, tenant));
+            b.Entity(type.ClrType).Property(nameof(Entity.RowVersion)).IsRowVersion();
         }
-        await next(context);
+    }
+
+    public override Task<int> SaveChangesAsync(CancellationToken ct = default)
+    {
+        AuditColumns.Apply(ChangeTracker, tenant);         // CreatedAtUtc/By, ModifiedAtUtc/By
+        return base.SaveChangesAsync(ct);
+    }
+}`},
+              {n:"UnitOfWork.cs", t:"file", k:"inf", d:"One SQL connection per request, shared by the module's DbContext and the Kernel's, so the domain change, ledger entry and outbox message are one transaction.", code:
+`public sealed class UnitOfWork(SqlConnection connection, IEnumerable<DbContext> contexts) : IUnitOfWork
+{
+    public async Task ExecuteAsync(Func<Task> work, CancellationToken ct)
+    {
+        await connection.OpenAsync(ct);
+        await using var tx = await connection.BeginTransactionAsync(ct);
+        foreach (var c in contexts) await c.Database.UseTransactionAsync(tx, ct);
+
+        await work();                                       // domain change + LedgerWriter + outbox
+        foreach (var c in contexts) await c.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);                           // all or nothing
     }
 }`}]},
-            {n:"appsettings.json", t:"file", k:"gw", d:"Each route says which service it goes to and which permission it needs. Adding an endpoint usually means adding a route here, not code.", code:
-`{
-  "AzureAd": {
-    "Instance": "https://login.microsoftonline.com/",
-    "TenantId": "<your tenant id>",
-    "ClientId": "<gateway app registration id>",
-    "Audience": "api://company-platform"
-  },
-  "Redis": { "Configuration": "redis:6379" },
-  "ReverseProxy": {
-    "Routes": {
-      "auth":      { "ClusterId": "auth",      "AuthorizationPolicy": "default",
-                     "Match": { "Path": "/api/auth/{**rest}" } },
-      "dashboard": { "ClusterId": "dashboard", "AuthorizationPolicy": "perm:dashboard.view",
-                     "RateLimiterPolicy": "per-user",
-                     "Match": { "Path": "/api/dashboard/{**rest}" } },
-      "licenses":  { "ClusterId": "license",   "AuthorizationPolicy": "perm:license.read",
-                     "Match": { "Path": "/api/licenses/{**rest}" } }
-    },
-    "Clusters": {
-      "auth":      { "Destinations": { "d1": { "Address": "https://auth-service:8443" } } },
-      "dashboard": { "Destinations": { "d1": { "Address": "https://dashboard-service:8443" } } },
-      "license":   { "Destinations": { "d1": { "Address": "https://license-service:8443" } } }
-    }
-  }
-}`},
-            {n:"Dockerfile", t:"file", k:"cmn", d:"The only container exposed to the internet or load balancer. Service containers stay on the internal network."}
-          ]}
-      ]},
-      {n:"Services", t:"dir", k:"cmn", d:"One folder per business area. Each folder is one deployable microservice with its own schema.", kids:[
-        service("License","license","License","License team",["Auth","Dashboard"],
-          "REST endpoints for license screens, and a gRPC server so Dashboard and partners can query licenses.",
-          "Issuing, renewing and validating licenses, expiry and grace-period rules."),
-        service("Dashboard","dashboard","Widget","Dashboard team",["License","Auth"],
-          "REST endpoints that feed the dashboard UI.",
-          "Builds dashboard summaries by combining its own widget data with data fetched from License and Auth over gRPC."),
-        service("Auth","auth","User","Auth team",["Dashboard","License"],
-          "a gRPC server the gateway and other services use to look up users and their permissions, plus admin endpoints to manage roles. There is no login or password endpoint: users sign in with company AD (Microsoft Entra ID).",
-          "Maps AD users and AD groups to app roles and permissions, creates the user record on first sign-in, reads profile details from Microsoft Graph, and clears the shared cache when a user's roles change or the user is disabled.",
-          [{n:"Caching", t:"dir", k:"cache", d:"Keeps the shared cache correct. Auth is the only service that changes permissions, so it is the one that clears them from the cache.",
-            kids:[{n:"PermissionCacheInvalidator.cs", t:"file", k:"cache", d:"Called by UserService/RoleService after a role change, and when a user is disabled.",
-              code:
-`public class PermissionCacheInvalidator(HybridCache cache, IConnectionMultiplexer redis)
+            {n:"Grpc", t:"dir", k:"inf", d:"The same gRPC behaviour in every .NET process: mTLS, caller identity, required deadlines, error mapping and telemetry.", kids:[
+              {n:"GrpcExtensions.cs", t:"file", k:"inf", d:"AddModelMintGrpcServer() for the Host and Worker, and one way to register every gRPC client.", code:
+`public static IServiceCollection AddModelMintGrpcServer(this IServiceCollection services)
 {
-    // After a user's roles or permissions change: the next request reloads them from Auth
-    public Task OnPermissionsChangedAsync(string userId, CancellationToken ct) =>
-        cache.RemoveByTagAsync(CacheKeys.UserTag(userId), ct).AsTask();
-
-    // When a user is disabled in this app: block them at the gateway until their AD token runs out
-    public Task BlockUserAsync(string userObjectId) =>
-        redis.GetDatabase().StringSetAsync(CacheKeys.BlockedUser(userObjectId), "1",
-            expiry: TimeSpan.FromHours(2));          // longer than an AD access token lives
-}`}]}])
-      ]},
-      {n:"Contracts", t:"dir", k:"ctr", d:"The only code services share about each other: the gRPC contracts. One project per service that exposes gRPC.", kids:[
-        contract("License","license",["GetLicense (GetLicenseRequest) returns (LicenseReply)","GetActiveLicenses (CustomerRequest) returns (LicenseListReply)"]),
-        contract("Auth","auth",["GetUserProfile (UserRequest) returns (UserProfileReply)","GetPermissions (UserRequest) returns (PermissionsReply)"]),
-        contract("Dashboard","dashboard",["GetSummary (CustomerRequest) returns (SummaryReply)","RemoveUserData (UserRequest) returns (Ack)"])
-      ]},
-      {n:"Common", t:"dir", k:"cmn", d:"Shared class libraries for cross-cutting plumbing. Never deployed alone, and never holds business rules, because a change here affects every service.", kids:[
-        {n:"Common.Core", t:"proj", k:"cmn", owner:"Tech lead", d:"Basic building blocks with no dependencies: Result<T>, base exceptions, constants, enums, guard helpers.",
-          refs:["Nothing (pure .NET)"], never:["Any service project","EF Core, ASP.NET"],
-          kids:[{n:"Results", t:"dir", k:"cmn", d:"Result<T> type so the BLL can return success/failure without throwing.",
-            kids:[{n:"Result.cs", t:"file", k:"cmn", d:"Simple result wrapper.", code:
-`public record Result<T>(bool IsSuccess, T? Value, string? Error)
-{
-    public static Result<T> Ok(T value) => new(true, value, null);
-    public static Result<T> Fail(string error) => new(false, default, error);
-}`}]},
-            {n:"Exceptions", t:"dir", k:"cmn", d:"NotFoundException, BusinessRuleException, etc., mapped to HTTP/gRPC codes in one place."},
-            {n:"Constants", t:"dir", k:"cmn", d:"Header names, claim types, role names shared by all services."}]},
-        {n:"Common.DAL", t:"proj", k:"cmn", owner:"Tech lead", d:"Data-access base classes: generic repository, AuditableEntity, unit of work, a SaveChanges interceptor that fills audit columns.",
-          refs:["Common.Core","EF Core"], never:["Any service's DbContext or entities"],
-          kids:[{n:"Repository.cs", t:"file", k:"cmn", d:"Generic base repository that service repositories inherit.", code:
-`public abstract class Repository<T>(DbContext db) : IRepository<T> where T : class
-{
-    public Task<T?> GetByIdAsync(int id, CancellationToken ct) => db.Set<T>().FindAsync([id], ct).AsTask();
-    public async Task<int> AddAsync(T entity, CancellationToken ct)
+    services.AddGrpc(o =>
     {
-        db.Add(entity);
-        await db.SaveChangesAsync(ct);
-        return (int)db.Entry(entity).Property("Id").CurrentValue!;
-    }
-}`},{n:"AuditableEntity.cs", t:"file", k:"cmn", d:"Base class with CreatedOn, CreatedBy, ModifiedOn, ModifiedBy, IsDeleted."}]},
-        {n:"Common.Grpc", t:"proj", k:"cmn", owner:"Tech lead", d:"gRPC plumbing: API-key / JWT interceptors, error-to-status mapping, and an AddServiceClient helper that sets the address, deadline defaults, retries and credentials for every client.",
-          refs:["Common.Core","Grpc.AspNetCore, Grpc.Net.ClientFactory"], never:["Any service's Contracts"],
-          kids:[{n:"Interceptors", t:"dir", k:"cmn", d:"Server interceptors shared by all services (today's ApiKeyInterceptor moves here), plus a logging interceptor."},
-            {n:"ServiceClientExtensions.cs", t:"file", k:"cmn", d:"One call to register any gRPC client the same way.", code:
-`public static IHttpClientBuilder AddServiceClient<TClient>(this IServiceCollection services,
-    IConfiguration config, string section) where TClient : class
-{
-    var cfg = config.GetSection(section);
-    return services.AddGrpcClient<TClient>(o => o.Address = new Uri(cfg["Address"]!))
-        // When this call happens inside an incoming gRPC call, pass on its deadline and
-        // cancellation, so a chain like Dashboard -> Auth -> License can never outlive the original request
-        .EnableCallContextPropagation(o => o.SuppressContextNotFoundErrors = true)
-        .AddCallCredentials(async (_, metadata, sp) =>
-        {
-            // Service-to-service: an AD token for the target service, using this service's own
-            // identity (managed identity / client credentials). Tokens are cached by Microsoft.Identity.Web.
-            var tokens = sp.GetRequiredService<ITokenAcquisition>();
-            var token = await tokens.GetAccessTokenForAppAsync(cfg["Scope"]!);   // e.g. api://license-service/.default
-            metadata.Add("Authorization", $"Bearer {token}");
-        })
-        .AddStandardResilienceHandler();   // retries + timeouts
-}`}]},
-        {n:"Common.Telemetry", t:"proj", k:"cmn", owner:"Tech lead",
-          d:"One place that sets up observability for the gateway and every service with OpenTelemetry: distributed traces, metrics and structured logs, all tagged with the service name and sent over OTLP to a collector. Trace context (W3C traceparent) flows automatically over HTTP and gRPC, so one browser request appears as a single trace across Gateway → Dashboard → License → Auth, including SQL and Redis calls.",
-          refs:["Common.Core","OpenTelemetry.Extensions.Hosting","OpenTelemetry instrumentation for AspNetCore, Http, GrpcNetClient, SqlClient, StackExchangeRedis","OpenTelemetry.Exporter.OpenTelemetryProtocol"],
-          never:["Business logic","Personal data (names, emails) in logs or span tags; use the AD object id instead"],
-          kids:[
-            {n:"TelemetryExtensions.cs", t:"file", k:"cmn", d:"Every service and the gateway call this once in Program.cs. Nobody configures telemetry by hand.", code:
-`public static IServiceCollection AddCommonTelemetry(this IServiceCollection services,
-    IConfiguration config, string serviceName)
-{
-    services.AddOpenTelemetry()
-        .ConfigureResource(r => r.AddService(serviceName))
-        .WithTracing(t => t
-            .AddAspNetCoreInstrumentation()        // incoming REST and gRPC calls
-            .AddGrpcClientInstrumentation()        // outgoing gRPC to other services
-            .AddHttpClientInstrumentation()        // outgoing HTTP (Entra ID, Graph)
-            .AddSqlClientInstrumentation()         // DAL queries
-            .AddRedisInstrumentation()             // cache lookups
-            .AddSource("Company.*")                // custom spans from BLL code
-            .AddOtlpExporter())                    // endpoint from OTEL_EXPORTER_OTLP_ENDPOINT
-        .WithMetrics(m => m
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddRuntimeInstrumentation()
-            .AddMeter("Company.*")                 // custom metrics, see Metrics.cs
-            .AddOtlpExporter())
-        .WithLogging(l => l.AddOtlpExporter());   // ILogger logs, linked to the trace id
-
-    services.AddHealthChecks();
-    return services;
-}`},
-            {n:"Metrics.cs", t:"file", k:"cmn", d:"Custom platform metrics defined once and used by the gateway and services.", code:
-`public static class CompanyMetrics
-{
-    private static readonly Meter Meter = new("Company.Platform");
-
-    public static readonly Counter<long> CacheHits   = Meter.CreateCounter<long>("cache.hits");
-    public static readonly Counter<long> CacheMisses = Meter.CreateCounter<long>("cache.misses");
-    public static readonly Counter<long> AuthDenied  = Meter.CreateCounter<long>("auth.denied");   // tag reason = 401 / 403
-}`},
-            {n:"CorrelationIdMiddleware.cs", t:"file", k:"cmn", d:"Reads or creates x-correlation-id, adds it to the current trace and log scope, and returns it in the response so support can find any request from a user's screenshot."}
-          ]},
-        {n:"Common.Auth", t:"proj", k:"cmn", owner:"Auth team + tech lead", d:"Shared authentication and authorization setup used by the gateway and every API: validation of company AD (Microsoft Entra ID) tokens with Microsoft.Identity.Web (AddCommonJwtAuth), permission policies named perm:<permission>, and the handler that checks them. Nobody in the platform issues tokens; Entra ID does.",
-          refs:["Common.Core","Microsoft.Identity.Web"], never:["Auth.BLL or Auth.DAL","Auth.Contracts (the gateway supplies IPermissionProvider)"],
-          kids:[
-            {n:"JwtAuthExtensions.cs", t:"file", k:"cmn", d:"One call to validate tokens the same way everywhere.", code:
-`public static IServiceCollection AddCommonJwtAuth(this IServiceCollection services, IConfiguration config)
-{
-    // Validates access tokens issued by Microsoft Entra ID (Azure AD) for our API.
-    // Entra's signing keys are downloaded once and cached, so there is no call to AD per request.
-    services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-        .AddMicrosoftIdentityWebApi(config.GetSection("AzureAd"))
-        .EnableTokenAcquisitionToCallDownstreamApi()     // AD tokens for service-to-service gRPC
-        .AddInMemoryTokenCaches();
-    return services;
-}
-
-// appsettings.json
-// "AzureAd": {
-//   "Instance": "https://login.microsoftonline.com/",
-//   "TenantId": "<your tenant id>",
-//   "ClientId": "<this service's app registration id>",
-//   "Audience": "api://company-platform"
-// }`},
-            {n:"PermissionHandler.cs", t:"file", k:"cmn", d:"Checks the permission a route needs against the user's permissions, which IPermissionProvider loads through the cache.", code:
-`public record PermissionRequirement(string Permission) : IAuthorizationRequirement;
-
-public class PermissionHandler(IPermissionProvider provider) : AuthorizationHandler<PermissionRequirement>
-{
-    protected override async Task HandleRequirementAsync(
-        AuthorizationHandlerContext context, PermissionRequirement requirement)
-    {
-        var userId = context.User.GetObjectId();                       // AD object id (oid claim)
-        if (userId is null) return;                                    // results in 401
-
-        var permissions = await provider.GetPermissionsAsync(userId, CancellationToken.None);
-        if (permissions.Contains(requirement.Permission))
-            context.Succeed(requirement);                              // otherwise 403
-    }
-}`},
-            {n:"PermissionPolicyProvider.cs", t:"file", k:"cmn", d:"Turns any policy name like perm:license.read into a PermissionRequirement, so permissions never need registering one by one."},
-            {n:"IPermissionProvider.cs", t:"file", k:"cmn", d:"Interface only. The gateway implements it with the cache + Auth gRPC; tests can fake it."}
-          ]},
-        {n:"Common.Caching", t:"proj", k:"cache", owner:"Tech lead",
-          d:"Shared caching setup for the gateway and any service that needs it: .NET HybridCache with a fast in-memory layer (L1) on each instance and Redis (L2) shared by all instances, plus the key names and default lifetimes, so everyone reads and clears the same entries.",
-          refs:["Common.Core","Microsoft.Extensions.Caching.Hybrid","Microsoft.Extensions.Caching.StackExchangeRedis"],
-          never:["Any service project","Business data without a clear expiry and invalidation plan"],
-          kids:[
-            {n:"CachingExtensions.cs", t:"file", k:"cache", d:"Registers Redis and HybridCache with the company defaults.", code:
-`public static IServiceCollection AddCommonCaching(this IServiceCollection services, IConfiguration config)
-{
-    var redis = config["Redis:Configuration"]!;
-
-    services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(redis));
-    services.AddStackExchangeRedisCache(o => o.Configuration = redis);   // L2: shared by every instance
-
-    services.AddHybridCache(o =>                                          // L1 memory in front of Redis
-    {
-        o.DefaultEntryOptions = new HybridCacheEntryOptions
-        {
-            Expiration = TimeSpan.FromMinutes(10),
-            LocalCacheExpiration = TimeSpan.FromMinutes(1)
-        };
+        o.Interceptors.Add<CallerIdentityInterceptor>();   // client certificate -> AnalyticsWorker / Worker / Connector
+        o.Interceptors.Add<DeadlineInterceptor>();         // rejects calls that carry no deadline
+        o.Interceptors.Add<ErrorMappingInterceptor>();     // domain errors -> gRPC status codes
+        o.MaxReceiveMessageSize = 16 * 1024 * 1024;        // big data goes through the Artefact Store
     });
     return services;
-}`},
-            {n:"CacheKeys.cs", t:"file", k:"cache", d:"Every cache key in one place, so the gateway that reads an entry and Auth that clears it can't drift apart.", code:
-`public static class CacheKeys
-{
-    public static string UserPermissions(string userId) => $"perm:{userId}";
-    public static string UserTag(string userId)         => $"user:{userId}";
-    public static string BlockedUser(string userId)     => $"blocked:{userId}";
 }
 
-public static class CacheOptions
+public static IHttpClientBuilder AddModelMintGrpcClient<TClient>(this IServiceCollection services,
+    Uri address, X509Certificate2 clientCertificate) where TClient : class =>
+    services.AddGrpcClient<TClient>(o => o.Address = address)
+        .ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+        {
+            SslOptions = { ClientCertificates = [clientCertificate] },   // mTLS
+            EnableMultipleHttp2Connections = true
+        })
+        // pass the incoming call's deadline and cancellation on to the next call
+        .EnableCallContextPropagation(o => o.SuppressContextNotFoundErrors = true);`},
+              {n:"CallerIdentityInterceptor.cs", t:"file", k:"inf", d:"Maps the client certificate's thumbprint to a caller role from Grpc:AllowedCallers and rejects unknown certificates with PERMISSION_DENIED. Client systems also present a connector token, checked against int.Connector."}]},
+            {n:"Outbox", t:"dir", k:"inf", d:"IOutbox: adds int.OutboxMessage rows inside the current transaction. Delivery is the Worker's job."},
+            {n:"Keys", t:"dir", k:"inf", d:"Key adapters: one interface, several back ends, chosen per installation.", kids:[
+              {n:"IKeyAdapter.cs", t:"file", k:"inf", d:"Secrets and keys come from here, never from config files.", code:
+`public interface IKeyAdapter
 {
-    public static readonly HybridCacheEntryOptions Permissions = new()
-    {
-        Expiration = TimeSpan.FromMinutes(10),          // in Redis
-        LocalCacheExpiration = TimeSpan.FromMinutes(1)  // in each instance's memory
-    };
-}`}
+    byte[] GetSecret(string name);                           // HMAC keys, OIDC client secret
+    byte[] Sign(string keyName, ReadOnlySpan<byte> data);    // Ed25519: job tokens, digests, usage reports
+}
+
+// Implementations, chosen in the installer:
+//   DpapiKeyAdapter             - profile S
+//   CertificateStoreKeyAdapter  - Windows certificate store, profile M
+//   Pkcs11HsmKeyAdapter         - bank HSM, profile L
+//   AzureKeyVaultKeyAdapter     - optional, cloud-connected clients`}]},
+            {n:"Telemetry", t:"dir", k:"inf", d:"AddModelMintTelemetry(): OpenTelemetry traces, metrics and logs for ASP.NET Core, HttpClient, SQL and custom ModelMint meters, exported over OTLP to a collector on the bank's servers. Audit events are a separate path (aud schema to SIEM)."}
+          ]}
+      ]},
+      {n:"Web", t:"dir", k:"web", d:"L1 Experience.", kids:[
+        {n:"modelmint-web", t:"proj", k:"web", owner:"Front-end team", kind:"Angular 22 app", deployed:"Static files served by the Host",
+          d:"The Angular client: five role workspaces, Control Tower, workflow inbox and tasks, model drawer, dynamic form renderer, committee views, command palette, admin and licence screens. It calls only the Host's /api/v1 and /bff endpoints.",
+          refs:["/bff and /api/v1 on the same origin"], never:["Access tokens in the browser (local or session storage)","Calling other systems directly"],
+          kids:[
+            {n:"src/app/core", t:"dir", k:"web", d:"BFF auth service, CSRF interceptor, error handling, SignalR connection.", kids:[
+              {n:"auth.service.ts", t:"file", k:"web", d:"The browser never sees an access token; the BFF keeps it server-side.", code:
+`@Injectable({ providedIn: 'root' })
+export class AuthService {
+  private http = inject(HttpClient);
+
+  // Who is signed in, from the BFF session cookie
+  user = toSignal(this.http.get<User | null>('/bff/user'), { initialValue: null });
+
+  login()  { location.href = '/bff/login?returnUrl=' + encodeURIComponent(location.pathname); }
+  logout() { location.href = '/bff/logout'; }
+}`}]},
+            {n:"src/app/workspaces", t:"dir", k:"web", d:"The five role workspaces (model owner, developer, validator, CRO/committee, admin)."},
+            {n:"src/app/control-tower", t:"dir", k:"web", d:"Portfolio view over rpt read models."},
+            {n:"src/app/forms", t:"dir", k:"web", d:"Dynamic form renderer for frm.FormDefinition JSON schemas."},
+            {n:"src/app/modules", t:"dir", k:"web", d:"One lazy-loaded feature folder per module (intake, registry, tiering, …), mirroring the backend."}
           ]}
       ]}
     ]},
-    {n:"tests", t:"dir", k:"cmn", d:"Test projects, mirrored per service so each team runs only its own tests in its pipeline.", kids:[
-      {n:"License.UnitTests", t:"proj", k:"bll", d:"Tests License.BLL with mocked repositories and gRPC clients.", refs:["License.BLL","xUnit, NSubstitute/Moq"], never:["A real database"]},
-      {n:"License.IntegrationTests", t:"proj", k:"api", d:"Starts License.API in memory with WebApplicationFactory and calls it over REST and gRPC against a test database (Testcontainers).", refs:["License.API"], never:[]},
-      {n:"Dashboard.UnitTests", t:"proj", k:"bll", d:"Tests Dashboard.BLL, including what happens when License or Auth is unavailable.", refs:["Dashboard.BLL"], never:[]},
-      {n:"Auth.UnitTests", t:"proj", k:"bll", d:"Tests Auth.BLL: password rules, token creation, role checks.", refs:["Auth.BLL"], never:[]}
+    {n:"analytics", t:"dir", k:"py", tagLabel:"Python",
+      d:"The Python 3.12 Analytics Plane (L6): one service, n worker nodes. It talks to the Host over gRPC in both directions: it calls AnalyticsJobs on the Host to lease jobs and return results, and it serves AnalyticsControl so the Host and Worker can cancel jobs and check its health. It verifies the signed job token, reads hash-checked inputs from the Artefact Store, runs test packs in an isolated process, writes artefacts and returns a signed result envelope. It has no database access.",
+      contains:["worker/: gRPC lease loop (client), gRPC control server, token check, result signing","generated/: Python code from contracts/protos","mm_* packages: the analytics libraries (internal packages, not separate services)","sandbox/: R2 runner for client models","tests/, pyproject.toml"],
+      kids:[
+        {n:"worker", t:"proj", k:"py", kind:"Python package (entry point)", deployed:"Windows Service on each analytics node", owner:"Analytics team",
+          d:"Two gRPC roles in one process. As a client: lease → verify token → heartbeat → load and hash-check inputs → run → sign result → submit. As a server (port 9444): AnalyticsControl for cancel, health and capabilities.",
+          refs:["generated/ (from contracts/protos)","mm_* packages","grpcio, cryptography, rfc8785"], never:["Any database driver","Writing anything except artefacts and gRPC calls to the Host"],
+          kids:[
+            {n:"lease_loop.py", t:"file", k:"py", d:"gRPC client side. Runs on every analytics node; mTLS identifies the node to the Host.", code:
+`import asyncio
+import grpc
+from generated.modelmint.jobs.v1 import jobs_pb2, jobs_pb2_grpc
+from worker.job_token import verify_job_token
+from worker.inputs import load_verified_inputs
+from worker.runner import run_in_isolated_process
+from worker.result_envelope import sign_result
+
+
+async def run_worker(cfg) -> None:
+    creds = grpc.ssl_channel_credentials(root_certificates=cfg.ca_bundle,     # mTLS: this node's certificate
+                                         private_key=cfg.key_pem, certificate_chain=cfg.cert_pem)
+    async with grpc.aio.secure_channel(cfg.host_address, creds) as channel:
+        jobs = jobs_pb2_grpc.AnalyticsJobsStub(channel)
+        while True:
+            lease = await jobs.Lease(jobs_pb2.LeaseRequest(worker_id=cfg.node_id), timeout=10)
+            if not lease.HasField("job"):                                    # nothing queued
+                await asyncio.sleep(cfg.idle_seconds)
+                continue
+
+            job = lease.job
+            claims = verify_job_token(lease.job_token, cfg.host_public_key, job.id)
+            heartbeat = asyncio.create_task(keep_alive(jobs, job.id))
+            try:
+                inputs = load_verified_inputs(job.inputs, cfg.artefact_root)     # SHA-256 must match
+                result = await run_in_isolated_process(job.kind, inputs, claims)
+                await jobs.Submit(sign_result(job.id, result, cfg.node_key), timeout=30)
+            except Exception as err:
+                await jobs.Fail(jobs_pb2.JobFailure(job_id=job.id, reason=str(err)[:500], retryable=True),
+                                timeout=10)
+            finally:
+                heartbeat.cancel()`},
+            {n:"control_server.py", t:"file", k:"py", d:"gRPC server side (port 9444): the Host and Worker call this to cancel a job, check health or list installed test packs. Only callers with a trusted client certificate are accepted.", code:
+`import grpc
+from generated.modelmint.analytics.v1 import analytics_pb2, analytics_pb2_grpc
+from worker.registry import running_jobs, installed_packs
+from worker.settings import NODE_ID
+
+
+class AnalyticsControl(analytics_pb2_grpc.AnalyticsControlServicer):
+    """The Host-to-Python direction of the two-way link."""
+
+    async def Cancel(self, request, context):
+        stopped = running_jobs.cancel(request.job_id)            # stops the isolated process
+        return analytics_pb2.CancelReply(stopped=stopped)
+
+    async def Health(self, request, context):
+        return analytics_pb2.HealthReply(status="SERVING", running=len(running_jobs), node_id=NODE_ID)
+
+    async def Capabilities(self, request, context):
+        return analytics_pb2.CapabilitiesReply(packs=[p.to_proto() for p in installed_packs()])
+
+
+async def serve_control(cfg) -> None:
+    server = grpc.aio.server()
+    analytics_pb2_grpc.add_AnalyticsControlServicer_to_server(AnalyticsControl(), server)
+    creds = grpc.ssl_server_credentials([(cfg.key_pem, cfg.cert_pem)],
+                                        root_certificates=cfg.ca_bundle,
+                                        require_client_auth=True)  # only Host / Worker certificates
+    server.add_secure_port(f"[::]:{cfg.control_port}", creds)
+    await server.start()
+    await server.wait_for_termination()`},
+            {n:"job_token.py", t:"file", k:"py", d:"Verifies the Host-signed job token before anything runs.", code:
+`import json
+import time
+from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
+from worker.encoding import b64url_decode
+
+
+def verify_job_token(token: str, host_key: Ed25519PublicKey, job_id: str) -> dict:
+    """Token = base64url(canonical JSON claims) + "." + base64url(Ed25519 signature)."""
+    body_b64, sig_b64 = token.split(".")
+    body = b64url_decode(body_b64)
+    host_key.verify(b64url_decode(sig_b64), body)          # raises InvalidSignature
+
+    claims = json.loads(body)
+    if claims["jobId"] != job_id:
+        raise PermissionError("Token is for a different job")
+    if claims["exp"] < time.time():
+        raise PermissionError("Job token expired")
+    return claims                                          # includes the licensed feature for this job`},
+            {n:"result_envelope.py", t:"file", k:"py", d:"Signs the result with this node's own Ed25519 key, over the same canonical JSON the Host uses, and wraps it in the gRPC message.", code:
+`from generated.modelmint.jobs.v1 import jobs_pb2
+from mm_ledger.hashing import canonicalize          # RFC 8785, same rules as .NET
+from worker.fingerprint import environment_fingerprint
+from worker.settings import NODE_KEY_ID
+
+
+def sign_result(job_id: str, result: dict, node_key) -> jobs_pb2.SignedResultEnvelope:
+    body = canonicalize({"jobId": job_id, "result": result, "environment": environment_fingerprint()})
+    return jobs_pb2.SignedResultEnvelope(job_id=job_id, body_json=body,
+                                         signature=node_key.sign(body), node_key_id=NODE_KEY_ID)`},
+            {n:"inputs.py", t:"file", k:"py", d:"Reads each input file from the Artefact Store and recomputes its SHA-256; a mismatch fails the job."},
+            {n:"runner.py", t:"file", k:"py", d:"Starts the test pack in a separate process with CPU, memory and time limits."}
+          ]},
+        {n:"generated", t:"dir", k:"py", d:"Python code generated from contracts/protos by contracts/generate.py (jobs, analytics and common protos). Never edited by hand; regenerated in CI and in the installer build."},
+        {n:"mm_engine", t:"dir", k:"py", d:"Test-pack engine: loads a pack manifest (ana.TestPack), runs its steps, collects metrics and evidence."},
+        {n:"mm_io", t:"dir", k:"py", d:"Reading and writing CSV, XLSX, Parquet and fixed-width files in the Artefact Store, with hash checks."},
+        {n:"mm_metrics", t:"dir", k:"py", d:"Metric library: discrimination (Gini, KS, AUC), stability (PSI, CSI), calibration, back-testing."},
+        {n:"mm_monitor", t:"dir", k:"py", d:"Monitoring aggregation and content checks for ingestion (schema, PII rejection, completeness ≥ 95%)."},
+        {n:"mm_ecl", t:"dir", k:"py", d:"ECL validation packs: PD / LGD / EAD, staging and SICR checks (R2 computation)."},
+        {n:"mm_diagnostics", t:"dir", k:"py", d:"ML diagnostics (R2), advanced diagnostics (R3)."},
+        {n:"mm_builder", t:"dir", k:"py", d:"Model Builder pipeline (R2)."},
+        {n:"mm_genai", t:"dir", k:"py", d:"GenAI / agent evaluation packs (R3)."},
+        {n:"mm_render", t:"dir", k:"py", d:"Report rendering: validation reports and evidence documents written to the Artefact Store."},
+        {n:"mm_ledger", t:"dir", k:"py", d:"Existing ledger code, limited to verification: recompute chains from exported snapshots and digests for auditors. Its SQL Server backend is removed so the no-database rule holds.", kids:[
+          {n:"hashing.py", t:"file", k:"py", d:"The Python half of the shared hash spec. Tested against contracts/hashing/test-vectors.json, like the .NET CanonicalHasher.", code:
+`import hashlib
+import rfc8785          # RFC 8785 canonical JSON, same rules as the .NET side
+
+
+def canonicalize(value) -> bytes:
+    return rfc8785.dumps(value)
+
+
+def sha256_hex(canonical: bytes) -> str:
+    return hashlib.sha256(canonical).hexdigest()`}]},
+        {n:"sandbox", t:"dir", k:"py", d:"R2 runner for client models: no network, read-only file system, resource limits, ONNX and skops formats only."},
+        {n:"tests", t:"dir", k:"py", d:"pytest: metric correctness against reference values, token and envelope checks, hash test vectors, a fake Job API for end-to-end runs."},
+        {n:"pyproject.toml", t:"file", k:"py", d:"Dependencies. No database drivers on purpose. The installer ships these as offline wheels with an embedded Python runtime.", code:
+`[project]
+name = "modelmint-analytics"
+requires-python = ">=3.12"
+dependencies = [
+  "grpcio", "protobuf", "cryptography", "rfc8785",
+  "pandas", "pyarrow", "numpy", "scipy", "scikit-learn",
+  "opentelemetry-sdk", "opentelemetry-exporter-otlp", "opentelemetry-instrumentation-grpc",
+]
+[dependency-groups]
+dev = ["grpcio-tools", "pytest", "pytest-asyncio"]   # grpcio-tools only to regenerate code
+# deliberately no database drivers: the Analytics Plane has no database access`}
+      ]},
+    {n:"contracts", t:"dir", k:"cmn", d:"Everything .NET and Python must agree on, kept language-neutral and versioned. Changes need review from both the Platform and Analytics teams.", kids:[
+      {n:"protos", t:"dir", k:"cmn", d:"Every gRPC contract, language-neutral. ModelMint.Contracts.Grpc generates the C#, generate.py the Python, and the client SDKs (.NET, Python, Java) come from the gate protos. Only add fields with new numbers; breaking changes go into a new v2 package.", kids:[
+        {n:"modelmint/jobs/v1/jobs.proto", t:"file", k:"py", d:"Python nodes → Host. The pull/lease model, now over gRPC.", code:
+`syntax = "proto3";
+package modelmint.jobs.v1;
+option csharp_namespace = "ModelMint.Contracts.Grpc.Jobs.V1";
+
+import "modelmint/common/v1/types.proto";
+
+// Called by Python analytics nodes; served by ModelMint.Host on the internal mTLS port
+service AnalyticsJobs {
+  rpc Lease     (LeaseRequest)         returns (LeaseResponse);   // no job field = nothing queued
+  rpc Heartbeat (HeartbeatRequest)     returns (modelmint.common.v1.Ack);
+  rpc Submit    (SignedResultEnvelope) returns (modelmint.common.v1.Ack);
+  rpc Fail      (JobFailure)           returns (modelmint.common.v1.Ack);
+}
+
+message LeaseRequest  { string worker_id = 1; }
+message LeaseResponse { Job job = 1; string job_token = 2; }      // token: Ed25519-signed by the Host
+
+message Job {
+  string id = 1;
+  string kind = 2;              // content-check, test-pack, monitoring-aggregation, report-render
+  repeated InputRef inputs = 3;
+}
+message InputRef { string storage_uri = 1; string sha256 = 2; int64 size_bytes = 3; }
+
+message HeartbeatRequest { string job_id = 1; }
+
+message SignedResultEnvelope {
+  string job_id = 1;
+  bytes  body_json = 2;         // RFC 8785 canonical JSON: results, artefact hashes, environment
+  bytes  signature = 3;         // Ed25519, this node's own key
+  string node_key_id = 4;
+}
+
+message JobFailure { string job_id = 1; string reason = 2; bool retryable = 3; }`},
+        {n:"modelmint/analytics/v1/analytics.proto", t:"file", k:"py", d:"Host / Worker → Python nodes: the other direction of the two-way link.", code:
+`syntax = "proto3";
+package modelmint.analytics.v1;
+option csharp_namespace = "ModelMint.Contracts.Grpc.Analytics.V1";
+
+// Served by every Python analytics node; called by the Host and the Worker
+service AnalyticsControl {
+  rpc Cancel       (CancelRequest)       returns (CancelReply);        // stop a running job
+  rpc Health       (HealthRequest)       returns (HealthReply);        // node status and load
+  rpc Capabilities (CapabilitiesRequest) returns (CapabilitiesReply);  // installed test packs
+}
+
+message CancelRequest       { string job_id = 1; string reason = 2; }
+message CancelReply         { bool stopped = 1; }
+message HealthRequest       {}
+message HealthReply         { string status = 1; int32 running = 2; string node_id = 3; string runtime_bundle = 4; }
+message CapabilitiesRequest {}
+message CapabilitiesReply   { repeated TestPackInfo packs = 1; }
+message TestPackInfo        { string pack_key = 1; string version = 2; string content_hash = 3; }`},
+        {n:"modelmint/worker/v1/worker.proto", t:"file", k:"api", d:"Host → Worker: actions from the operations console.", code:
+`syntax = "proto3";
+package modelmint.worker.v1;
+option csharp_namespace = "ModelMint.Contracts.Grpc.Worker.V1";
+
+import "modelmint/common/v1/types.proto";
+
+// Served by ModelMint.Worker; called by the Host's operations console
+service WorkerControl {
+  rpc TriggerIngestion (TriggerRequest)            returns (modelmint.common.v1.Ack);
+  rpc VerifyChain      (VerifyRequest)             returns (ChainReport);
+  rpc GetBacklog       (modelmint.common.v1.Empty) returns (Backlog);
+}
+
+message TriggerRequest { string connector_id = 1; }
+message VerifyRequest  { int64 from_sequence_no = 1; int64 to_sequence_no = 2; }
+message ChainReport    { bool intact = 1; int64 checked = 2; int64 first_broken_sequence_no = 3; }
+message Backlog        { int64 outbox_pending = 1; int64 jobs_queued = 2; int64 ingestion_pending = 3; }`},
+        {n:"modelmint/host/v1/notifications.proto", t:"file", k:"api", d:"Worker → each Host node, so users connected to that node get live updates.", code:
+`syntax = "proto3";
+package modelmint.host.v1;
+option csharp_namespace = "ModelMint.Contracts.Grpc.Host.V1";
+
+import "modelmint/common/v1/types.proto";
+
+// Served by every Host node; the Worker calls it to reach users connected to that node
+service Notifications {
+  rpc Publish (NotificationEvent) returns (modelmint.common.v1.Ack);
+}
+
+message NotificationEvent {
+  string tenant_id = 1;
+  repeated string user_ids = 2;      // empty = everyone allowed to see the record
+  string record_type = 3;
+  string record_id = 4;
+  string event_type = 5;             // e.g. task.assigned, model.status.changed
+}`},
+        {n:"modelmint/gate/v1/gate.proto", t:"file", k:"api", d:"Client systems → Host (B2B). Shipped to banks as the client SDK for .NET, Python and Java.", code:
+`syntax = "proto3";
+package modelmint.gate.v1;
+option csharp_namespace = "ModelMint.Contracts.Grpc.Gate.V1";
+option java_package = "com.ial.modelmint.gate.v1";
+
+import "google/protobuf/timestamp.proto";
+
+// B2B: client systems (scoring engines, rating, ECL) call ModelMint
+service ModelGate {
+  // Unary: may this model version be used right now?
+  rpc CheckGate    (GateRequest)         returns (GateDecision);
+  // Server streaming: kill switch, restriction and version changes, pushed as they happen
+  rpc WatchStatus  (WatchRequest)        returns (stream StatusChange);
+  // Client streaming: scored records in, one batch receipt out
+  rpc SubmitScores (stream ScoredRecord) returns (BatchReceipt);
+}
+
+message GateRequest  { string model_code = 1; string version_label = 2; string environment = 3; }
+message GateDecision { bool allowed = 1; string usage_status = 2; string reason = 3; }
+
+message WatchRequest { repeated string model_codes = 1; }
+message StatusChange {
+  string model_code = 1;
+  string version_label = 2;
+  string usage_status = 3;           // Active, Restricted, Suspended (kill switch), Retired
+  google.protobuf.Timestamp effective_at = 4;
+}
+
+message ScoredRecord {
+  string transaction_ref = 1;
+  string customer_id = 2;            // tokenized by ModelMint on arrival, never stored raw
+  string model_code = 3;
+  string version_label = 4;
+  string score = 5;                  // decimal as a string
+  string band = 6;
+  string decision = 7;
+  google.protobuf.Timestamp scored_at = 8;
+}
+message BatchReceipt { string batch_id = 1; int64 accepted = 2; int64 rejected = 3; string content_sha256 = 4; }`},
+        {n:"modelmint/common/v1/types.proto", t:"file", k:"cmn", d:"Shared messages: Ack, Empty, decimals as strings, paging."}
+      ]},
+      {n:"generate.py", t:"file", k:"py", d:"Generates the Python code into analytics/generated from the same protos the .NET build uses. Run in CI and in the installer build.", code:
+`"""Generate Python gRPC code from contracts/protos."""
+from pathlib import Path
+from grpc_tools import protoc
+
+ROOT = Path(__file__).parent / "protos"
+OUT = Path(__file__).parent.parent / "analytics" / "generated"
+
+protos = [str(p.relative_to(ROOT)) for p in ROOT.rglob("*.proto")]
+exit_code = protoc.main(["protoc", f"-I{ROOT}", f"--python_out={OUT}", f"--pyi_out={OUT}",
+                         f"--grpc_python_out={OUT}", *protos])
+raise SystemExit(exit_code)`},
+      {n:"job-kinds.md", t:"file", k:"py", d:"Each job kind (content-check, test-pack, monitoring-aggregation, report-render, …) with its inputs, outputs and the entitlement it needs."},
+      {n:"hashing", t:"dir", k:"ker", d:"The canonical hash spec used by the ledger, artefact hashes and signatures.", kids:[
+        {n:"canonical-hash-spec.md", t:"file", k:"ker", d:"Rules both languages implement exactly.", code:
+`# Canonical hash spec v1
+
+1. Serialize with RFC 8785 (JSON Canonicalization Scheme): sorted keys, no whitespace, UTF-8.
+2. Timestamps: ISO 8601 UTC with exactly 6 fractional digits, e.g. "2026-01-15T10:00:00.000000Z"
+   (matches datetime2(6)).
+3. Decimals: strings with the column's scale, e.g. "12.500000". Never binary floats.
+4. GUIDs: lower-case, hyphenated.
+5. Snapshot hash input = canonical JSON of
+   { streamId, streamSequenceNo, eventType, eventSchemaVersion, occurredAtUtc,
+     actorType, actor, payload, prevStreamHash }.
+6. Hash = lower-case hex SHA-256 of the UTF-8 bytes.
+
+Both implementations must pass test-vectors.json in CI. A change here is a new spec version,
+recorded in every snapshot (EventSchemaVersion), never an edit to v1.`},
+        {n:"test-vectors.json", t:"file", k:"ker", d:"Sample inputs with their expected canonical form and hash. Generated once, reviewed, then frozen."}]},
+      {n:"integration", t:"dir", k:"cmn", d:"Canonical contracts for client data (scored transactions, NPA snapshots, ECL results) as JSON Schema, mirrored by int.CanonicalContract."},
+      {n:"events", t:"dir", k:"cmn", d:"Ledger event types and their JSON schemas (ldg.EventTypeRegistry), shared by LedgerWriter and verification tools."}
     ]},
-    {n:"deploy", t:"dir", k:"cmn", d:"Everything needed to run the services outside Visual Studio.", kids:[
-      {n:"docker-compose.yml", t:"file", k:"cmn", d:"Runs all services and SQL Server locally with one command: docker compose up.", code:
-`services:
-  sql:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-  redis:
-    image: redis:7-alpine
-  otel-collector:                    # receives telemetry from every service
-    image: otel/opentelemetry-collector-contrib:0.110.0
-    volumes: ["./otel-collector.yaml:/etc/otelcol-contrib/config.yaml"]
-    environment:
-      - APPLICATIONINSIGHTS_CONNECTION_STRING=...
-  # every service below also gets: OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
-  api-gateway:                       # the only service with a public port
-    build: { context: .., dockerfile: src/Gateway/ApiGateway/Dockerfile }
-    ports: ["8080:8080"]
-    environment:
-      - Redis__Configuration=redis:6379
-      - Services__Auth__Address=https://auth-service:8443
-  license-service:
-    build: { context: .., dockerfile: src/Services/License/License.API/Dockerfile }
-    environment:
-      - ConnectionStrings__LicenseDb=Server=sql;Database=CompanyDb;...
-      - Services__Auth__Address=https://auth-service:8443
-  auth-service:
-    build: { context: .., dockerfile: src/Services/Auth/Auth.API/Dockerfile }
-  dashboard-service:
-    build: { context: .., dockerfile: src/Services/Dashboard/Dashboard.API/Dockerfile }
-    environment:
-      - Services__License__Address=https://license-service:8443
-      - Services__Auth__Address=https://auth-service:8443`},
-      {n:"otel-collector.yaml", t:"file", k:"cmn", d:"OpenTelemetry Collector config. It receives OTLP from every service and forwards traces, metrics and logs to your monitoring tool. Switching tools (Application Insights, Grafana, Jaeger, Seq) changes only this file, not the services.", code:
-`receivers:
-  otlp:
-    protocols: { grpc: {}, http: {} }
-processors:
-  batch: {}
-exporters:
-  azuremonitor:
-    connection_string: \${env:APPLICATIONINSIGHTS_CONNECTION_STRING}
-service:
-  pipelines:
-    traces:  { receivers: [otlp], processors: [batch], exporters: [azuremonitor] }
-    metrics: { receivers: [otlp], processors: [batch], exporters: [azuremonitor] }
-    logs:    { receivers: [otlp], processors: [batch], exporters: [azuremonitor] }`},
-      {n:"k8s", t:"dir", k:"cmn", d:"Kubernetes manifests or Helm charts, one folder per service (deployment, service, config, secrets reference)."}
+    {n:"db", t:"dir", k:"inf", d:"SQL that EF Core migrations can't express. Applied by the installer after the migrations.", kids:[
+      {n:"ledger-append-only.sql", t:"file", k:"inf", d:"Makes the ledger append-only in the database itself, and keeps SQL Server's own tamper-evident digest alongside ModelMint's hash chain.", code:
+`-- SQL Server 2022 append-only ledger table: rows can be inserted, never updated or deleted
+CREATE TABLE ldg.LedgerSnapshot
+(
+    Id               uniqueidentifier NOT NULL PRIMARY KEY,
+    TenantId         uniqueidentifier NOT NULL,
+    LedgerStreamId   uniqueidentifier NOT NULL,
+    StreamSequenceNo bigint           NOT NULL,
+    EventType        varchar(60)      NOT NULL,
+    PayloadJson      nvarchar(max)    NOT NULL,
+    PrevStreamHash   char(64)         NULL,
+    SnapshotHash     char(64)         NOT NULL
+    -- ... remaining columns from ER 3
+)
+WITH (LEDGER = ON (APPEND_ONLY = ON));
+
+-- The global chain is appended by the Worker to its own append-only table
+CREATE TABLE ldg.GlobalChainEntry
+(
+    GlobalSequenceNo bigint           NOT NULL PRIMARY KEY,
+    SnapshotId       uniqueidentifier NOT NULL,
+    PrevGlobalHash   char(64)         NULL,
+    GlobalHash       char(64)         NOT NULL
+)
+WITH (LEDGER = ON (APPEND_ONLY = ON));`},
+      {n:"row-level-security.sql", t:"file", k:"inf", d:"Security policy that filters every tenant-scoped table by SESSION_CONTEXT('TenantId'), set by the connection interceptor. Backs up the EF Core filters."},
+      {n:"logins-and-permissions.sql", t:"file", k:"inf", d:"Separate logins for the Host, the Worker and migrations, each with the least rights it needs. There is no login for Python."}
     ]},
-    {n:".github/workflows", t:"dir", k:"cmn", d:"CI/CD pipelines (or azure-pipelines/). One pipeline per service, triggered only by changes under that service's path, Contracts or Common.", kids:[
-      {n:"license.yml", t:"file", k:"cmn", d:"Builds, tests and deploys License only.", code:
-`on:
-  push:
-    paths:
-      - "src/Services/License/**"
-      - "src/Contracts/License.Contracts/**"
-      - "src/Common/**"
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-dotnet@v4
-      - run: dotnet test tests/License.UnitTests
-      - run: docker build -f src/Services/License/License.API/Dockerfile .`}]},
-    {n:"Directory.Build.props", t:"file", k:"cmn", d:"Settings every project inherits, so nobody sets them per project.", code:
+    {n:"installer", t:"dir", k:"cmn", d:"Offline signed installer for bank environments (UAT, Production, DR), on a quarterly patch cycle.", kids:[
+      {n:"profiles", t:"dir", k:"cmn", d:"S, M and L settings: which components go on which server, cache and SignalR options, key adapter type."},
+      {n:"bundle", t:"dir", k:"cmn", d:"Host, Worker, Angular build, the analytics service with an embedded Python runtime and offline wheels, migrations and db scripts. The analytics runtime version changes only through maker-checker."},
+      {n:"Install-ModelMint.ps1", t:"file", k:"cmn", d:"Checks prerequisites, installs the IIS site and Windows Services, applies migrations and db scripts, registers the installation identity and produces the activation request file."},
+      {n:"signing", t:"dir", k:"cmn", d:"Code-signing and bundle manifest (SHA-256 of every file, signed) so the bank can verify what it installs."}
+    ]},
+    {n:"tests", t:"dir", k:"cmn", d:"Tests that protect the architecture as well as the behaviour.", kids:[
+      {n:"ModelMint.ArchitectureTests", t:"proj", k:"cmn", d:"Fails the build if a project references something it shouldn't.", refs:["NetArchTest.Rules","All module assemblies"], never:[], kids:[
+        {n:"ModuleBoundaryTests.cs", t:"file", k:"cmn", d:"Modules may only reach each other through ModelMint.Contracts.", code:
+`public class ModuleBoundaryTests
+{
+    private static readonly string[] Modules =
+        ["Intake", "Registry", "Tiering", "Development", "Testing", "Validation", "Approval",
+         "Monitoring", "Issues", "Artefacts", "Reporting", "Integration", "Administration"];
+
+    [Fact]
+    public void Modules_only_talk_through_contracts()
+    {
+        foreach (var m in Modules)
+        foreach (var other in Modules.Where(o => o != m))
+        {
+            var result = Types.InAssembly(Assembly.Load($"ModelMint.{m}.Application"))
+                .ShouldNot()
+                .HaveDependencyOnAny($"ModelMint.{other}.Domain",
+                                     $"ModelMint.{other}.Application",
+                                     $"ModelMint.{other}.Infrastructure")
+                .GetResult();
+
+            Assert.True(result.IsSuccessful, $"{m} must use ModelMint.Contracts to reach {other}");
+        }
+    }
+}`}]},
+      {n:"ModelMint.Kernel.Tests", t:"proj", k:"ker", d:"Workflow transitions, guards, SoD rules, ledger chaining and licence states (Valid, Expiring, Grace, Read-only)."},
+      {n:"ModelMint.Modules.Tests", t:"proj", k:"app", d:"Handler tests per module against SQL Server in a test container or LocalDB, including the one-transaction rule."},
+      {n:"HashSpec.CrossLanguage", t:"dir", k:"ker", d:"Runs contracts/hashing/test-vectors.json through both the .NET CanonicalHasher and Python hashing.py; any difference fails CI."}
+    ]},
+    {n:"Directory.Build.props", t:"file", k:"cmn", d:"Settings every .NET project inherits.", code:
 `<Project>
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <RootNamespace>$(MSBuildProjectName)</RootNamespace>
   </PropertyGroup>
 </Project>`},
-    {n:"Directory.Packages.props", t:"file", k:"cmn", d:"Central package management: every NuGet version is set once here, so all services use the same Grpc, EF Core and logging versions.", code:
+    {n:"Directory.Packages.props", t:"file", k:"cmn", d:"Central package management: each NuGet version is set once for the whole solution. The versions shown are examples; pin the ones you test with.", code:
 `<Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageVersion Include="Grpc.AspNetCore" Version="2.85.0" />
-    <PackageVersion Include="Grpc.Net.ClientFactory" Version="2.85.0" />
-    <PackageVersion Include="Grpc.Tools" Version="2.85.0" />
-    <PackageVersion Include="Google.Protobuf" Version="3.36.2" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.0" />
+    <PackageVersion Include="Quartz.Extensions.Hosting" Version="3.13.1" />
+    <PackageVersion Include="NSec.Cryptography" Version="24.4.0" />
+    <PackageVersion Include="OpenTelemetry.Extensions.Hosting" Version="1.10.0" />
+    <PackageVersion Include="NetArchTest.Rules" Version="1.3.2" />
   </ItemGroup>
 </Project>`},
-    {n:".editorconfig", t:"file", k:"cmn", d:"Shared code style (naming, spacing, analyzers) so formatting doesn't cause merge conflicts."},
-    {n:"CODEOWNERS", t:"file", k:"cmn", d:"Routes pull-request reviews to the team that owns each folder.", code:
-`/src/Gateway/              @company/platform-team @company/auth-team
-/src/Services/License/     @company/license-team
-/src/Services/Dashboard/   @company/dashboard-team
-/src/Services/Auth/        @company/auth-team
-/src/Contracts/            @company/license-team @company/dashboard-team @company/auth-team
-/src/Common/               @company/architects
-/Directory.*.props         @company/architects`},
-    {n:"CompanySolution.slnx", t:"file", k:"cmn", d:"The solution file, organised with solution folders so each team can collapse what it doesn't own.", code:
-`<Solution>
-  <Folder Name="/Services/License/">
-    <Project Path="src/Services/License/License.API/License.API.csproj" />
-    <Project Path="src/Services/License/License.BLL/License.BLL.csproj" />
-    <Project Path="src/Services/License/License.DAL/License.DAL.csproj" />
-  </Folder>
-  <Folder Name="/Services/Dashboard/"> ... </Folder>
-  <Folder Name="/Services/Auth/"> ... </Folder>
-  <Folder Name="/Contracts/"> ... </Folder>
-  <Folder Name="/Common/"> ... </Folder>
-  <Folder Name="/Tests/"> ... </Folder>
-</Solution>`},
-    {n:"README.md", t:"file", k:"cmn", d:"How to build, run (docker compose up) and add a new service. The first file a new developer reads."}
+    {n:"CODEOWNERS", t:"file", k:"cmn", d:"Routes reviews to the owning team. Contracts and the Kernel need Platform review.", code:
+`/src/ModelMint.Host/          @ial/platform
+/src/ModelMint.Worker/        @ial/platform
+/src/ModelMint.Kernel/        @ial/platform
+/src/Shared/                  @ial/platform
+/src/Modules/Intake/          @ial/universe
+/src/Modules/Registry/        @ial/universe
+/src/Modules/Tiering/         @ial/universe
+/src/Modules/Reporting/       @ial/universe
+/src/Modules/Validation/      @ial/assurance
+/src/Modules/Approval/        @ial/assurance
+/src/Modules/Issues/          @ial/assurance
+/src/Modules/Development/     @ial/assurance
+/src/Modules/Monitoring/      @ial/operate
+/src/Modules/Testing/         @ial/operate
+/src/Modules/Artefacts/       @ial/operate
+/src/Modules/Integration/     @ial/operate
+/src/Modules/Administration/  @ial/platform
+/src/Web/                     @ial/frontend
+/analytics/                   @ial/analytics
+/contracts/                   @ial/platform @ial/analytics
+/db/  /installer/             @ial/platform`},
+    {n:"ModelMint.slnx", t:"file", k:"cmn", d:"Solution with folders for Host, Worker, Kernel, Shared, each module, and tests, so each team can collapse what it doesn't own."},
+    {n:"README.md", t:"file", k:"cmn", d:"How to build, run locally (Host + Worker + one analytics node + LocalDB), and add a module. The first file a new developer reads."}
   ]};
 
   /* ---------- index ---------- */
@@ -1106,24 +1540,22 @@ jobs:
     (node.kids||[]).forEach(k=>index(k,node));
   })(TREE,null);
   const pathOf = id => { const p=[]; let c=id; while(c){p.unshift(byId.get(c).n); c=parent.get(c);} return p.join("/"); };
+  const findByName = nm => [...byId.values()].find(n=>n.n===nm);
 
   const expanded = new Set();
-  ["CompanySolution","src","Services"].forEach(nm=>{ for(const n of byId.values()) if(n.n===nm) expanded.add(n.id); });
-  const lic = [...byId.values()].find(n=>n.n==="License" && n.k==="svc"); expanded.add(lic.id);
-  const licApi = [...byId.values()].find(n=>n.n==="License.API"); expanded.add(licApi.id);
-  let current = lic.id;
+  ["ModelMint","src","Modules","Registry"].forEach(nm=>{ const n=findByName(nm); if(n) expanded.add(n.id); });
+  let current = findByName("ModelMint").id;
   let filterText = "";
 
   /* ---------- tree render ---------- */
   const treeEl = document.getElementById("tree");
   const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-
   function matches(node){ return !filterText || node.n.toLowerCase().includes(filterText) || pathOf(node.id).toLowerCase().includes(filterText); }
   function subtreeMatches(node){ return matches(node) || (node.kids||[]).some(subtreeMatches); }
-
   function icon(n){ return n.t==="file" ? "▤" : n.t==="proj" ? "◆" : "▣"; }
   function tagFor(n){
-    if(n.t==="proj"||n.k==="svc"){ const k = n.k==="svc" ? "cmn" : n.k; const lbl = n.k==="svc" ? "Service" : LABEL[n.k]; return `<span class="tag ${L[k]}">${lbl}</span>`; }
+    if(n.tagLabel) return `<span class="tag ${L[n.k]||"l-cmn"}">${esc(n.tagLabel)}</span>`;
+    if(n.t==="proj") return `<span class="tag ${L[n.k]||"l-cmn"}">${esc(LABEL[n.k]||"Project")}</span>`;
     return "";
   }
   function renderNode(n, depth){
@@ -1133,7 +1565,7 @@ jobs:
     const hit = filterText && matches(n) ? " hit" : "";
     let h = `<li role="treeitem" aria-level="${depth}"${hasKids?` aria-expanded="${open}"`:""}>`;
     h += `<button class="node${hit}" data-id="${n.id}" type="button"${hasKids?` aria-expanded="${open}"`:""} ${n.id===current?'aria-current="true"':""}>`;
-    h += `<span class="chev" aria-hidden="true">${hasKids?"▸":""}</span><span class="ico ${n.k&&L[n.k]?L[n.k]:""}" aria-hidden="true" style="color:var(--c,var(--muted))">${icon(n)}</span><span class="nm">${esc(n.n)}</span>${tagFor(n)}</button>`;
+    h += `<span class="chev" aria-hidden="true">${hasKids?"▸":""}</span><span class="ico ${L[n.k]||""}" aria-hidden="true">${icon(n)}</span><span class="nm">${esc(n.n)}</span>${tagFor(n)}</button>`;
     if(open) h += `<ul role="group">${n.kids.map(k=>renderNode(k,depth+1)).join("")}</ul>`;
     return h + "</li>";
   }
@@ -1142,21 +1574,21 @@ jobs:
   /* ---------- detail render ---------- */
   const detailEl = document.getElementById("detail");
   function kindLabel(n){
-    if(n.k==="svc") return "Microservice folder";
-    if(n.t==="proj" && n.k==="gw") return "ASP.NET Core gateway (YARP)";
-    if(n.t==="proj") return n.k==="api" ? "ASP.NET Core Web API project" : n.n.includes("Tests") ? "Test project" : "Class library";
+    if(n.kind) return n.kind;
+    if(n.tagLabel==="Module") return "Module (4 projects)";
+    if(n.tagLabel==="Python") return "Python service";
+    if(n.t==="proj") return n.k==="api" ? "ASP.NET Core project" : n.n.includes("Tests") ? "Test project" : "Class library";
     return n.t==="dir" ? "Folder" : "File";
   }
   function renderDetail(){
     const n = byId.get(current);
-    const tagKey = n.k==="svc" ? "cmn" : (n.k||"cmn");
     let h = `<div class="crumb">${esc(pathOf(n.id))}</div>`;
-    h += `<div class="dhead"><h2>${esc(n.n)}</h2><span class="tag ${L[tagKey]}">${esc(kindLabel(n))}</span></div>`;
+    h += `<div class="dhead"><h2>${esc(n.n)}</h2><span class="tag ${L[n.k]||"l-cmn"}">${esc(kindLabel(n))}</span></div>`;
     h += `<p class="desc">${esc(n.d||"")}</p>`;
     const meta = [];
     if(n.owner) meta.push(["Owner", n.owner]);
-    if(n.t==="proj" && (n.k==="api"||n.k==="gw") && !n.n.includes("Tests")) meta.push(["Deployed as", n.k==="gw" ? "Its own container, the only one with a public address" : "Its own container / app service (internal network only)"]);
-    if(n.t==="proj" && (n.k==="bll"||n.k==="dal"||n.k==="cmn"||n.k==="ctr"||n.k==="cache") && !n.n.includes("Tests")) meta.push(["Deployed as","Part of the API that references it (not on its own)"]);
+    if(n.deployed) meta.push(["Deployed as", n.deployed]);
+    else if(n.t==="proj" && !n.n.includes("Tests") && n.k!=="py") meta.push(["Deployed as","Part of the Host and Worker (not on its own)"]);
     if(meta.length) h += `<dl class="kv">${meta.map(([k,v])=>`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl>`;
     const boxes = [];
     if(n.contains) boxes.push(`<div class="box"><h3>Contains</h3><ul>${n.contains.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`);
@@ -1167,7 +1599,6 @@ jobs:
     if(n.code) h += `<div class="codewrap"><button type="button" class="btn copy" data-copy>Copy</button><pre><code>${esc(n.code)}</code></pre></div>`;
     detailEl.innerHTML = h;
   }
-
   function select(id){
     current = id; let c = parent.get(id); while(c){ expanded.add(c); c = parent.get(c); }
     renderTree(); renderDetail();
@@ -1204,7 +1635,7 @@ jobs:
 
   /* ---------- tabs ---------- */
   const tabs = [...document.querySelectorAll(".tab")];
-  const VIEWS = ["structure","architecture","flow","team"];
+  const VIEWS = ["structure","architecture","flow","team","review"];
   function show(v){
     if(!VIEWS.includes(v)) v = "structure";
     tabs.forEach(t=>{ const on = t.getAttribute("aria-controls")===v; t.setAttribute("aria-selected",on); t.tabIndex = on?0:-1; });
